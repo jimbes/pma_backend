@@ -150,7 +150,7 @@ nano .env
 APP_NAME=PMA
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://your-domain.com
+APP_URL=https://pma.besse.dev
 
 DB_CONNECTION=mysql
 DB_HOST=localhost

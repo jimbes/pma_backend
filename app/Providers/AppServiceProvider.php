@@ -13,6 +13,7 @@ use App\Policies\MedicationPolicy;
 use App\Policies\MedicationSchedulePolicy;
 use App\Policies\NotificationPolicy;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Schema;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Schema::defaultStringLength(191);
         $this->registerPolicies();
     }
 
