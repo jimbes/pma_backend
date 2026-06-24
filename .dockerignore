@@ -1,0 +1,13 @@
+.git
+.gitignore
+node_modules
+npm-debug.log
+.env
+.env.*.local
+/storage/logs/*
+/bootstrap/cache/*
+vendor
+.editorconfig
+docker-compose.yml
+Dockerfile
+nginx.conf

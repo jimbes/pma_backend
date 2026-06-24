@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\MedicationSchedule;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\Request;
+
+class MedicationScheduleController extends Controller
+{
+    use AuthorizesRequests;
+    public function index(Request $request, $medicationId = null)
+    {
+        $query = MedicationSchedule::where('couple_id', auth()->user()->couple_id);
+
+        if ($medicationId) {
+            $query->where('medication_id', $medicationId);
+        }
+
+        $schedules = $query->with('medication')->get();
+        return response()->json(['schedules' => $schedules]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'medication_id' => 'required|exists:medications,id',
+            'start_date' => 'required|date',
+            'end_date' => 'nullable|date|after:start_date',
+            'frequency' => 'required|in:daily,specific_days',
+            'days_of_week' => 'nullable|json',
+            'reminder_times' => 'required|json',
+            'reminder_offset_hours' => 'integer|min:0|max:24',
+            'notify_user_1' => 'boolean',
+            'notify_user_2' => 'boolean',
+        ]);
+
+        $schedule = MedicationSchedule::create([
+            'couple_id' => auth()->user()->couple_id,
+            'medication_id' => $request->medication_id,
+            'start_date' => $request->start_date,
+            'end_date' => $request->end_date,
+            'frequency' => $request->frequency,
+            'days_of_week' => $request->frequency === 'specific_days' ? $request->days_of_week : null,
+            'reminder_times' => $request->reminder_times,
+            'reminder_offset_hours' => $request->reminder_offset_hours ?? 1,
+            'notify_user_1' => $request->boolean('notify_user_1', true),
+            'notify_user_2' => $request->boolean('notify_user_2', true),
+        ]);
+
+        return response()->json(['schedule' => $schedule], 201);
+    }
+
+    public function show($id)
+    {
+        $schedule = MedicationSchedule::findOrFail($id);
+        $this->authorize('view', $schedule);
+        return response()->json(['schedule' => $schedule->load('medication')]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $schedule = MedicationSchedule::findOrFail($id);
+        $this->authorize('update', $schedule);
+
+        $request->validate([
+            'start_date' => 'date',
+            'end_date' => 'nullable|date',
+            'frequency' => 'in:daily,specific_days',
+            'days_of_week' => 'nullable|json',
+            'reminder_times' => 'json',
+            'reminder_offset_hours' => 'integer|min:0|max:24',
+            'notify_user_1' => 'boolean',
+            'notify_user_2' => 'boolean',
+        ]);
+
+        $schedule->update($request->all());
+        return response()->json(['schedule' => $schedule]);
+    }
+
+    public function destroy($id)
+    {
+        $schedule = MedicationSchedule::findOrFail($id);
+        $this->authorize('delete', $schedule);
+        $schedule->delete();
+        return response()->json(['message' => 'Schedule deleted']);
+    }
+}
