@@ -9,7 +9,7 @@ class Medication extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['couple_id', 'name', 'dosage', 'unit', 'description', 'active'];
+    protected $fillable = ['couple_id', 'name', 'dosage', 'unit', 'form', 'for_partner', 'description', 'active'];
 
     protected function casts(): array
     {

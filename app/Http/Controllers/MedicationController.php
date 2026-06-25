@@ -24,6 +24,8 @@ class MedicationController extends Controller
             'name' => 'required|string|max:255',
             'dosage' => 'required|string',
             'unit' => 'required|string',
+            'form' => 'nullable|in:injection,comprimé,patch,ovule',
+            'for_partner' => 'in:user1,user2,both',
             'description' => 'nullable|string',
         ]);
 
@@ -32,6 +34,8 @@ class MedicationController extends Controller
             'name' => $request->name,
             'dosage' => $request->dosage,
             'unit' => $request->unit,
+            'form' => $request->form,
+            'for_partner' => $request->for_partner ?? 'both',
             'description' => $request->description,
             'active' => true,
         ]);
@@ -55,6 +59,8 @@ class MedicationController extends Controller
             'name' => 'string|max:255',
             'dosage' => 'string',
             'unit' => 'string',
+            'form' => 'nullable|in:injection,comprimé,patch,ovule',
+            'for_partner' => 'in:user1,user2,both',
             'description' => 'nullable|string',
             'active' => 'boolean',
         ]);

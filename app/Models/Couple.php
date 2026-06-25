@@ -45,4 +45,14 @@ class Couple extends Model
     {
         return $this->hasMany(Notification::class);
     }
+
+    public function journeyStages()
+    {
+        return $this->hasMany(JourneyStage::class);
+    }
+
+    public function practitioners()
+    {
+        return $this->hasMany(Practitioner::class);
+    }
 }

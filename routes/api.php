@@ -9,11 +9,14 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\MeController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DeviceTokenController;
+use App\Http\Controllers\JourneyStageController;
 use App\Http\Controllers\MedicationController;
 use App\Http\Controllers\MedicationScheduleController;
 use App\Http\Controllers\MedicationTakenLogController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\PartnerController;
+use App\Http\Controllers\PractitionerController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -46,6 +49,10 @@ Route::prefix('v1')->group(function () {
 
         Route::get('partner', [PartnerController::class, 'show']);
         Route::delete('partner/{id}', [PartnerController::class, 'remove']);
+
+        Route::apiResource('journey-stages', JourneyStageController::class);
+        Route::apiResource('practitioners', PractitionerController::class);
+        Route::apiResource('notification-preferences', NotificationPreferenceController::class);
 
         Route::get('notifications', [NotificationController::class, 'index']);
         Route::get('notifications/{id}', [NotificationController::class, 'show']);

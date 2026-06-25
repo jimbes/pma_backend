@@ -16,6 +16,8 @@ class Appointment extends Model
         'description',
         'appointment_date',
         'appointment_time',
+        'type',
+        'reminder_minutes_before',
         'location',
         'doctor_name',
         'notify_user_1',
