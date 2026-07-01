@@ -10,7 +10,7 @@ class MedicationSchedule extends Model
     use HasFactory;
 
     protected $table = 'medication_schedules';
-    protected $fillable = ['medication_id', 'couple_id', 'start_date', 'end_date', 'frequency', 'days_of_week', 'reminder_times', 'reminder_offset_hours', 'notify_user_1', 'notify_user_2'];
+    protected $fillable = ['medication_id', 'couple_id', 'journey_stage_id', 'start_date', 'end_date', 'frequency', 'days_of_week', 'reminder_times', 'reminder_offset_hours', 'notify_user_1', 'notify_user_2'];
 
     protected function casts(): array
     {
@@ -32,6 +32,11 @@ class MedicationSchedule extends Model
     public function couple()
     {
         return $this->belongsTo(Couple::class);
+    }
+
+    public function journeyStage()
+    {
+        return $this->belongsTo(JourneyStage::class);
     }
 
     public function takenLog()

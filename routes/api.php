@@ -52,6 +52,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('partner/{id}', [PartnerController::class, 'remove']);
 
         Route::apiResource('journey-stages', JourneyStageController::class);
+        Route::post('journey-stages/{id}/close', [JourneyStageController::class, 'close']);
         Route::apiResource('practitioners', PractitionerController::class);
         Route::apiResource('notification-preferences', NotificationPreferenceController::class);
 

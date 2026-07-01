@@ -15,6 +15,7 @@ class JourneyStage extends Model
         'type',
         'start_date',
         'start_time',
+        'end_date',
         'status',
         'reminder_enabled',
         'notes',
@@ -24,6 +25,8 @@ class JourneyStage extends Model
     {
         return [
             'start_date' => 'date',
+            'start_time' => 'datetime',
+            'end_date' => 'date',
             'reminder_enabled' => 'boolean',
         ];
     }
@@ -36,5 +39,10 @@ class JourneyStage extends Model
     public function treatmentCycle()
     {
         return $this->belongsTo(TreatmentCycle::class);
+    }
+
+    public function medicationSchedules()
+    {
+        return $this->hasMany(MedicationSchedule::class);
     }
 }

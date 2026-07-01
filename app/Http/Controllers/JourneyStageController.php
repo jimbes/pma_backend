@@ -68,6 +68,19 @@ class JourneyStageController extends Controller
         return response()->json(['journey_stage' => $stage]);
     }
 
+    public function close($id)
+    {
+        $stage = JourneyStage::findOrFail($id);
+        $this->authorize('update', $stage);
+
+        $stage->update([
+            'end_date' => now()->toDateString(),
+            'status' => 'done',
+        ]);
+
+        return response()->json(['journey_stage' => $stage]);
+    }
+
     public function destroy($id)
     {
         $stage = JourneyStage::findOrFail($id);
