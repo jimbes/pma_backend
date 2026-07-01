@@ -9,6 +9,48 @@ use Illuminate\Support\Str;
 
 class InvitePartnerController extends Controller
 {
+    public function current()
+    {
+        $user = auth()->user();
+
+        $invitation = $user->couple
+            ? $user->couple->invitations()
+                ->where('accepted', false)
+                ->where('expires_at', '>', now())
+                ->latest()
+                ->first()
+            : null;
+
+        if (!$invitation) {
+            return response()->json(['invitation' => null]);
+        }
+
+        return response()->json([
+            'invitation' => [
+                'id' => $invitation->id,
+                'invitee_email' => $invitation->invitee_email,
+                'token' => $invitation->token,
+                'expires_at' => $invitation->expires_at->format('Y-m-d H:i:s'),
+            ],
+        ]);
+    }
+
+    public function cancel($id)
+    {
+        $user = auth()->user();
+        $invitation = $user->couple
+            ? $user->couple->invitations()->where('id', $id)->first()
+            : null;
+
+        if (!$invitation) {
+            return response()->json(['message' => 'Invitation introuvable'], 404);
+        }
+
+        $invitation->delete();
+
+        return response()->json(['message' => 'Invitation annulée']);
+    }
+
     public function invite()
     {
         request()->validate(['email' => 'required|email']);
@@ -26,6 +68,19 @@ class InvitePartnerController extends Controller
 
         if ($myPartnerCount > 0) {
             return response()->json(['message' => 'Vous avez déjà un·e partenaire'], 422);
+        }
+
+        $hasActiveInvitation = $user->couple
+            ? $user->couple->invitations()
+                ->where('accepted', false)
+                ->where('expires_at', '>', now())
+                ->exists()
+            : false;
+
+        if ($hasActiveInvitation) {
+            return response()->json([
+                'message' => 'Une invitation est déjà en attente. Annulez-la avant d\'en envoyer une nouvelle.',
+            ], 422);
         }
 
         $invitedUser = User::where('email', $email)->first();

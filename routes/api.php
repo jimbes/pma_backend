@@ -28,7 +28,9 @@ Route::prefix('v1')->group(function () {
             Route::get('me', [MeController::class, 'show']);
             Route::put('me', [MeController::class, 'update']);
             Route::post('logout', [LogoutController::class, 'logout']);
+            Route::get('invite-partner', [InvitePartnerController::class, 'current']);
             Route::post('invite-partner', [InvitePartnerController::class, 'invite']);
+            Route::delete('invite-partner/{id}', [InvitePartnerController::class, 'cancel']);
             Route::post('join-couple', [JoinCoupleController::class, 'join']);
         });
         Route::post('accept-invite/{token}', [AcceptInviteController::class, 'accept']);
