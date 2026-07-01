@@ -3,6 +3,7 @@
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Auth\AcceptInviteController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\InvitePartnerController;
 use App\Http\Controllers\Auth\JoinCoupleController;
 use App\Http\Controllers\Auth\LoginController;
@@ -24,6 +25,7 @@ Route::prefix('v1')->group(function () {
     Route::prefix('auth')->group(function () {
         Route::post('register', [RegisterController::class, 'register']);
         Route::post('login', [LoginController::class, 'login']);
+        Route::post('google', [GoogleAuthController::class, 'login']);
         Route::middleware('auth:sanctum')->group(function () {
             Route::get('me', [MeController::class, 'show']);
             Route::put('me', [MeController::class, 'update']);
