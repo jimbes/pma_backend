@@ -33,7 +33,8 @@ class MedicationScheduleController extends Controller
             'days_of_week.*' => 'integer|min:0|max:6',
             'reminder_times' => 'required|array',
             'reminder_times.*' => 'string',
-            'reminder_offset_hours' => 'integer|min:0|max:24',
+            // Despite the column name, this is minutes-before-dose (max 24h worth).
+            'reminder_offset_hours' => 'integer|min:0|max:1440',
             'notify_user_1' => 'boolean',
             'notify_user_2' => 'boolean',
         ]);
@@ -76,7 +77,8 @@ class MedicationScheduleController extends Controller
             'days_of_week.*' => 'integer|min:0|max:6',
             'reminder_times' => 'array',
             'reminder_times.*' => 'string',
-            'reminder_offset_hours' => 'integer|min:0|max:24',
+            // Despite the column name, this is minutes-before-dose (max 24h worth).
+            'reminder_offset_hours' => 'integer|min:0|max:1440',
             'notify_user_1' => 'boolean',
             'notify_user_2' => 'boolean',
         ]);
