@@ -51,6 +51,49 @@ class InvitePartnerController extends Controller
         return response()->json(['message' => 'Invitation annulée']);
     }
 
+    /**
+     * Invitations sent TO the current user's email, awaiting their response.
+     */
+    public function received()
+    {
+        $user = auth()->user();
+
+        $invitations = CoupleInvitation::where('invitee_email', $user->email)
+            ->where('accepted', false)
+            ->where('expires_at', '>', now())
+            ->with('inviter')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'invitations' => $invitations->map(function ($invitation) {
+                return [
+                    'id' => $invitation->id,
+                    'token' => $invitation->token,
+                    'inviter_name' => $invitation->inviter->name,
+                    'expires_at' => $invitation->expires_at->format('Y-m-d H:i:s'),
+                ];
+            }),
+        ]);
+    }
+
+    public function decline($id)
+    {
+        $user = auth()->user();
+
+        $invitation = CoupleInvitation::where('id', $id)
+            ->where('invitee_email', $user->email)
+            ->first();
+
+        if (!$invitation) {
+            return response()->json(['message' => 'Invitation introuvable'], 404);
+        }
+
+        $invitation->delete();
+
+        return response()->json(['message' => 'Invitation refusée']);
+    }
+
     public function invite()
     {
         request()->validate(['email' => 'required|email']);

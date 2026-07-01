@@ -33,6 +33,8 @@ Route::prefix('v1')->group(function () {
             Route::get('invite-partner', [InvitePartnerController::class, 'current']);
             Route::post('invite-partner', [InvitePartnerController::class, 'invite']);
             Route::delete('invite-partner/{id}', [InvitePartnerController::class, 'cancel']);
+            Route::get('my-invitations', [InvitePartnerController::class, 'received']);
+            Route::delete('my-invitations/{id}', [InvitePartnerController::class, 'decline']);
             Route::post('join-couple', [JoinCoupleController::class, 'join']);
         });
         Route::post('accept-invite/{token}', [AcceptInviteController::class, 'accept']);
