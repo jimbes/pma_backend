@@ -45,6 +45,27 @@ class AdminController extends Controller
         return view('admin.couples', ['couples' => $couples]);
     }
 
+    public function coupleDetail(Couple $couple)
+    {
+        $couple->load([
+            'users' => function ($q) {
+                $q->where('is_admin', false);
+            },
+            'appointments' => function ($q) {
+                $q->orderBy('appointment_date', 'desc');
+            },
+            'medications.schedules.journeyStage',
+            'journeyStages' => function ($q) {
+                $q->orderBy('order');
+            },
+            'invitations' => function ($q) {
+                $q->orderBy('created_at', 'desc');
+            },
+        ]);
+
+        return view('admin.couple-detail', ['couple' => $couple]);
+    }
+
     public function deleteUser(User $user)
     {
         if ($user->is_admin) {

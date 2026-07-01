@@ -131,6 +131,7 @@
                         <th>Members</th>
                         <th>Data</th>
                         <th>Created</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -161,6 +162,9 @@
                             <span><strong>{{ $couple->journey_stages_count }}</strong> étapes</span>
                         </td>
                         <td><span class="date">{{ $couple->created_at->format('M d, Y') }}</span></td>
+                        <td>
+                            <a href="{{ route('admin.couple-detail', $couple) }}" class="btn">Voir détails</a>
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
