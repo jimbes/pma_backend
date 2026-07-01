@@ -23,6 +23,7 @@ class JourneyStageController extends Controller
             'type' => 'required|in:stimulation,declenchement,ponction,transfert,attente_test',
             'start_date' => 'required|date',
             'start_time' => 'nullable|date_format:H:i',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'in:upcoming,in_progress,done',
             'reminder_enabled' => 'boolean',
             'notes' => 'nullable|string',
@@ -34,6 +35,7 @@ class JourneyStageController extends Controller
             'type' => $request->type,
             'start_date' => $request->start_date,
             'start_time' => $request->start_time,
+            'end_date' => $request->end_date,
             'status' => $request->status ?? 'upcoming',
             'reminder_enabled' => $request->boolean('reminder_enabled', true),
             'notes' => $request->notes,
@@ -59,12 +61,22 @@ class JourneyStageController extends Controller
             'type' => 'in:stimulation,declenchement,ponction,transfert,attente_test',
             'start_date' => 'date',
             'start_time' => 'nullable|date_format:H:i',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'status' => 'in:upcoming,in_progress,done',
             'reminder_enabled' => 'boolean',
             'notes' => 'nullable|string',
         ]);
 
-        $stage->update($request->all());
+        $stage->update($request->only([
+            'treatment_cycle_id',
+            'type',
+            'start_date',
+            'start_time',
+            'end_date',
+            'status',
+            'reminder_enabled',
+            'notes',
+        ]));
         return response()->json(['journey_stage' => $stage]);
     }
 
