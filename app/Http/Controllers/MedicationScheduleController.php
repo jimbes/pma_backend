@@ -25,6 +25,7 @@ class MedicationScheduleController extends Controller
     {
         $request->validate([
             'medication_id' => 'required|exists:medications,id',
+            'journey_stage_id' => 'nullable|exists:journey_stages,id',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
             'frequency' => 'required|in:daily,specific_days',
@@ -38,6 +39,7 @@ class MedicationScheduleController extends Controller
         $schedule = MedicationSchedule::create([
             'couple_id' => auth()->user()->couple_id,
             'medication_id' => $request->medication_id,
+            'journey_stage_id' => $request->journey_stage_id,
             'start_date' => $request->start_date,
             'end_date' => $request->end_date,
             'frequency' => $request->frequency,
@@ -64,6 +66,7 @@ class MedicationScheduleController extends Controller
         $this->authorize('update', $schedule);
 
         $request->validate([
+            'journey_stage_id' => 'nullable|exists:journey_stages,id',
             'start_date' => 'date',
             'end_date' => 'nullable|date',
             'frequency' => 'in:daily,specific_days',
@@ -74,7 +77,17 @@ class MedicationScheduleController extends Controller
             'notify_user_2' => 'boolean',
         ]);
 
-        $schedule->update($request->all());
+        $schedule->update($request->only([
+            'journey_stage_id',
+            'start_date',
+            'end_date',
+            'frequency',
+            'days_of_week',
+            'reminder_times',
+            'reminder_offset_hours',
+            'notify_user_1',
+            'notify_user_2',
+        ]));
         return response()->json(['schedule' => $schedule]);
     }
 
