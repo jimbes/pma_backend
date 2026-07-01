@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Couple;
+use App\Models\CoupleInvitation;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -64,6 +65,15 @@ class AdminController extends Controller
         ]);
 
         return view('admin.couple-detail', ['couple' => $couple]);
+    }
+
+    public function deleteInvitation(CoupleInvitation $invitation)
+    {
+        $coupleId = $invitation->couple_id;
+        $invitation->delete();
+
+        return redirect()->route('admin.couple-detail', $coupleId)
+            ->with('success', 'Invitation supprimée.');
     }
 
     public function deleteUser(User $user)

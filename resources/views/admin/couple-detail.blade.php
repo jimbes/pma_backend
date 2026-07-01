@@ -110,6 +110,21 @@
             border-radius: 4px;
             font-size: 0.85rem;
         }
+        .alert {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .alert.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
     </style>
 </head>
 <body>
@@ -120,6 +135,14 @@
 
     <div class="container">
         <a href="{{ route('admin.couples') }}" class="back-link">← Retour aux couples</a>
+
+        @if(session('success'))
+        <div class="alert success">{{ session('success') }}</div>
+        @endif
+
+        @if(session('error'))
+        <div class="alert error">{{ session('error') }}</div>
+        @endif
 
         <!-- Members -->
         <div class="section">
@@ -276,6 +299,7 @@
                         <th>Statut</th>
                         <th>Expire le</th>
                         <th>Token</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -293,6 +317,13 @@
                         </td>
                         <td>{{ $invitation->expires_at->format('d/m/Y H:i') }}</td>
                         <td><code>{{ $invitation->token }}</code></td>
+                        <td>
+                            <form action="{{ route('admin.delete-invitation', $invitation) }}" method="POST" onsubmit="return confirm('Supprimer cette invitation ?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn danger" style="padding: 0.35rem 0.8rem; font-size: 0.8rem; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Supprimer</button>
+                            </form>
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>

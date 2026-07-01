@@ -73,7 +73,7 @@ class MedicationController extends Controller
     {
         $medication = Medication::findOrFail($id);
         $this->authorize('delete', $medication);
-        $medication->update(['active' => false]);
-        return response()->json(['message' => 'Medication deactivated']);
+        $medication->delete();
+        return response()->json(['message' => 'Medication deleted']);
     }
 }
