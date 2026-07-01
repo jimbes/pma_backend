@@ -16,6 +16,7 @@ Route::post('/login', [WebLoginController::class, 'login'])->name('admin.login.p
 Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::get('/couples', [AdminController::class, 'couples'])->name('admin.couples');
     Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.delete-user');
     Route::post('/logout', [WebLoginController::class, 'logout'])->name('admin.logout');
 });

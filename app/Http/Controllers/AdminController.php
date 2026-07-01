@@ -33,6 +33,18 @@ class AdminController extends Controller
         return view('admin.users', ['users' => $users]);
     }
 
+    public function couples()
+    {
+        $couples = Couple::with(['users' => function ($q) {
+                $q->where('is_admin', false);
+            }])
+            ->withCount(['appointments', 'medications', 'journeyStages'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.couples', ['couples' => $couples]);
+    }
+
     public function deleteUser(User $user)
     {
         if ($user->is_admin) {

@@ -128,6 +128,7 @@
 
         <div class="actions">
             <a href="{{ route('admin.users') }}" class="btn">Manage Users</a>
+            <a href="{{ route('admin.couples') }}" class="btn">Manage Couples</a>
             <form action="{{ route('admin.logout') }}" method="POST" style="display: inline;">
                 @csrf
                 <button type="submit" class="btn secondary">Logout</button>
