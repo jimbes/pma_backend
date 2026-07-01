@@ -26,6 +26,12 @@ class AcceptInviteController extends Controller
             return response()->json(['message' => 'Invitation already accepted'], 400);
         }
 
+        if (User::where('email', $invitation->invitee_email)->exists()) {
+            return response()->json([
+                'message' => 'Un compte existe déjà pour cet email. Connectez-vous et utilisez le code d\'invitation pour rejoindre le couple.',
+            ], 422);
+        }
+
         request()->validate([
             'name' => 'required|string|max:255',
             'password' => 'required|string|min:8|confirmed',

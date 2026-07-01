@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\Auth\AcceptInviteController;
 use App\Http\Controllers\Auth\InvitePartnerController;
+use App\Http\Controllers\Auth\JoinCoupleController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\MeController;
@@ -28,6 +29,7 @@ Route::prefix('v1')->group(function () {
             Route::put('me', [MeController::class, 'update']);
             Route::post('logout', [LogoutController::class, 'logout']);
             Route::post('invite-partner', [InvitePartnerController::class, 'invite']);
+            Route::post('join-couple', [JoinCoupleController::class, 'join']);
         });
         Route::post('accept-invite/{token}', [AcceptInviteController::class, 'accept']);
     });

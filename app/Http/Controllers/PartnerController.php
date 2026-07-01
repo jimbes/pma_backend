@@ -3,14 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\UserResource;
-use Illuminate\Http\Request;
+use App\Models\Couple;
 
 class PartnerController extends Controller
 {
     public function show()
     {
         $couple = auth()->user()->couple;
-        $partner = $couple->users()->where('id', '!=', auth()->id())->first();
+        $partner = $couple ? $couple->users()->where('id', '!=', auth()->id())->first() : null;
 
         if (!$partner) {
             return response()->json(['partner' => null]);
@@ -24,8 +24,11 @@ class PartnerController extends Controller
         $user = auth()->user();
         $partner = $user->couple->users()->where('id', $id)->firstOrFail();
 
-        $partner->delete();
+        // Unlink rather than delete: the partner keeps their account and data,
+        // just moves to a fresh solo couple instead of losing everything.
+        $newCouple = Couple::create();
+        $partner->update(['couple_id' => $newCouple->id]);
 
-        return response()->json(['message' => 'Partner removed from couple']);
+        return response()->json(['message' => 'Partenaire retiré du couple']);
     }
 }
