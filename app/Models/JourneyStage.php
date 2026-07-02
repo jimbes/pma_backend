@@ -13,11 +13,13 @@ class JourneyStage extends Model
         'couple_id',
         'treatment_cycle_id',
         'type',
+        'custom_name',
         'order',
         'start_date',
         'start_time',
         'end_date',
         'duration_days',
+        'manual_end_date',
         'status',
         'reminder_enabled',
         'notes',
@@ -32,6 +34,7 @@ class JourneyStage extends Model
             'duration_days' => 'integer',
             'order' => 'integer',
             'reminder_enabled' => 'boolean',
+            'manual_end_date' => 'boolean',
         ];
     }
 

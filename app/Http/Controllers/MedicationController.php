@@ -73,6 +73,10 @@ class MedicationController extends Controller
     {
         $medication = Medication::findOrFail($id);
         $this->authorize('delete', $medication);
+        // Explicit cascade rather than relying solely on the DB foreign key
+        // (this hosting's MySQL config has been unreliable about enforcing
+        // it, leaving orphaned schedules that reference a deleted medication).
+        $medication->schedules()->delete();
         $medication->delete();
         return response()->json(['message' => 'Medication deleted']);
     }
