@@ -52,6 +52,7 @@ Route::prefix('v1')->group(function () {
         Route::get('schedules/{id}/history', [MedicationTakenLogController::class, 'history']);
         Route::post('schedules/{id}/mark-taken', [MedicationTakenLogController::class, 'markTaken']);
         Route::put('schedules/{id}/mark-not-taken', [MedicationTakenLogController::class, 'markNotTaken']);
+        Route::get('medication-taken-logs', [MedicationTakenLogController::class, 'indexForCouple']);
 
         Route::post('devices/register', [DeviceTokenController::class, 'register']);
         Route::delete('devices/{id}', [DeviceTokenController::class, 'revoke']);

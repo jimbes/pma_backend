@@ -10,6 +10,20 @@ use Illuminate\Http\Request;
 class MedicationTakenLogController extends Controller
 {
     use AuthorizesRequests;
+
+    /// All taken/not-taken logs across every schedule belonging to the
+    /// couple - lets the app show "mark as taken" state on Home/Agenda for
+    /// both partners without one request per schedule.
+    public function indexForCouple(Request $request)
+    {
+        $scheduleIds = MedicationSchedule::where('couple_id', auth()->user()->couple_id)
+            ->pluck('id');
+
+        $logs = MedicationTakenLog::whereIn('medication_schedule_id', $scheduleIds)->get();
+
+        return response()->json(['logs' => $logs]);
+    }
+
     public function history($scheduleId)
     {
         $schedule = MedicationSchedule::findOrFail($scheduleId);
