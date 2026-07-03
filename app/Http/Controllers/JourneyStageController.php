@@ -20,7 +20,7 @@ class JourneyStageController extends Controller
     {
         $request->validate([
             'treatment_cycle_id' => 'nullable|integer|exists:treatment_cycles,id',
-            'type' => 'required|in:stimulation,declenchement,ponction,transfert,attente_test',
+            'type' => 'required|in:preparation,stimulation,controle,declenchement,ponction,transfert,attente_test',
             'custom_name' => 'nullable|string|max:255',
             'order' => 'integer|min:0',
             'start_date' => 'required|date',
@@ -66,7 +66,7 @@ class JourneyStageController extends Controller
 
         $request->validate([
             'treatment_cycle_id' => 'nullable|integer|exists:treatment_cycles,id',
-            'type' => 'in:stimulation,declenchement,ponction,transfert,attente_test',
+            'type' => 'in:preparation,stimulation,controle,declenchement,ponction,transfert,attente_test',
             'custom_name' => 'nullable|string|max:255',
             'order' => 'integer|min:0',
             'start_date' => 'date',
