@@ -14,7 +14,12 @@ class MedicationTakenLog extends Model
 
     protected function casts(): array
     {
-        return ['date' => 'date', 'taken_at' => 'time:H:i:s', 'taken' => 'boolean'];
+        // No cast for taken_at: Eloquent has no built-in "time" cast type
+        // (only date/datetime/timestamp) - declaring one throws
+        // InvalidCastException on every create(). Left as the raw "H:i:s"
+        // string MySQL returns for a TIME column; the Flutter client parses
+        // it manually alongside `date`.
+        return ['date' => 'date', 'taken' => 'boolean'];
     }
 
     public function schedule()
