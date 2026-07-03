@@ -41,12 +41,16 @@ class MedicationTakenLogController extends Controller
         $schedule = MedicationSchedule::findOrFail($scheduleId);
         $this->authorize('update', $schedule);
 
-        $request->validate(['date' => 'required|date']);
+        $request->validate([
+            'date' => 'required|date',
+            'time' => 'nullable|date_format:H:i',
+        ]);
 
         $log = MedicationTakenLog::updateOrCreate(
             [
                 'medication_schedule_id' => $scheduleId,
                 'date' => $request->date,
+                'time' => $request->time,
             ],
             [
                 'taken' => true,
@@ -64,12 +68,16 @@ class MedicationTakenLogController extends Controller
         $schedule = MedicationSchedule::findOrFail($scheduleId);
         $this->authorize('update', $schedule);
 
-        $request->validate(['date' => 'required|date']);
+        $request->validate([
+            'date' => 'required|date',
+            'time' => 'nullable|date_format:H:i',
+        ]);
 
         $log = MedicationTakenLog::updateOrCreate(
             [
                 'medication_schedule_id' => $scheduleId,
                 'date' => $request->date,
+                'time' => $request->time,
             ],
             [
                 'taken' => false,

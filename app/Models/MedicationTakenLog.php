@@ -10,7 +10,7 @@ class MedicationTakenLog extends Model
     use HasFactory;
 
     protected $table = 'medication_taken_log';
-    protected $fillable = ['medication_schedule_id', 'date', 'taken', 'taken_at', 'user_logged_by', 'notes'];
+    protected $fillable = ['medication_schedule_id', 'date', 'time', 'taken', 'taken_at', 'user_logged_by', 'notes'];
 
     protected function casts(): array
     {
