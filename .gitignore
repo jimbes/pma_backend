@@ -65,6 +65,7 @@ storage/pail
 # Firebase credentials
 firebase-service-account.json
 firebase-*.json
+/storage/app/firebase/
 
 # API tokens & credentials
 .tokens

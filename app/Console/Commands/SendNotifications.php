@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Appointment;
 use App\Models\MedicationSchedule;
 use App\Services\NotificationService;
 use Illuminate\Console\Command;
@@ -19,7 +20,21 @@ class SendNotifications extends Command
     public function handle(): int
     {
         $this->info('Processing medication reminders...');
+        $medicationCount = $this->sendMedicationReminders();
+        $this->info("Created {$medicationCount} medication reminders");
 
+        $this->info('Processing appointment reminders...');
+        $appointmentCount = $this->sendAppointmentReminders();
+        $this->info("Created {$appointmentCount} appointment reminders");
+
+        $this->notificationService->processPendingRetries();
+        $this->info('Processed pending retries');
+
+        return 0;
+    }
+
+    private function sendMedicationReminders(): int
+    {
         $schedules = MedicationSchedule::where('start_date', '<=', now()->format('Y-m-d'))
             ->where(function ($query) {
                 $query->whereNull('end_date')
@@ -28,39 +43,93 @@ class SendNotifications extends Command
             ->with('couple.users')
             ->get();
 
-        $reminderCount = 0;
+        $count = 0;
+        $today = now()->format('Y-m-d');
 
         foreach ($schedules as $schedule) {
-            if ($this->shouldRemindToday($schedule)) {
-                foreach ($schedule->reminder_times as $time) {
-                    $reminderTime = now()->format('Y-m-d') . ' ' . $time;
+            if (!$this->shouldRemindToday($schedule)) {
+                continue;
+            }
 
-                    if (now()->format('Y-m-d H:i') >= $reminderTime) {
-                        if ($schedule->notify_user_1) {
-                            $this->notificationService->createMedicationReminder(
-                                $schedule,
-                                $schedule->couple->users->first()->id
-                            );
-                            $reminderCount++;
-                        }
+            foreach ($schedule->reminder_times as $time) {
+                $reminderTime = "{$today} {$time}";
 
-                        if ($schedule->notify_user_2 && $schedule->couple->users->count() > 1) {
-                            $this->notificationService->createMedicationReminder(
-                                $schedule,
-                                $schedule->couple->users->last()->id
-                            );
-                            $reminderCount++;
-                        }
-                    }
+                if (now()->format('Y-m-d H:i') < $reminderTime) {
+                    continue;
+                }
+
+                // One instant per reminder time per day - this is the
+                // natural key the dedup unique index is built around.
+                $scheduledFor = "{$today} " . (strlen($time) === 5 ? "{$time}:00" : $time);
+
+                if ($schedule->notify_user_1) {
+                    $this->notificationService->createMedicationReminder(
+                        $schedule,
+                        $schedule->couple->users->first()->id,
+                        $scheduledFor
+                    );
+                    $count++;
+                }
+
+                if ($schedule->notify_user_2 && $schedule->couple->users->count() > 1) {
+                    $this->notificationService->createMedicationReminder(
+                        $schedule,
+                        $schedule->couple->users->last()->id,
+                        $scheduledFor
+                    );
+                    $count++;
                 }
             }
         }
 
-        $this->info("Created {$reminderCount} medication reminders");
-        $this->notificationService->processPendingRetries();
-        $this->info('Processed pending retries');
+        return $count;
+    }
 
-        return 0;
+    private function sendAppointmentReminders(): int
+    {
+        $appointments = Appointment::where('completed', false)
+            ->whereNotNull('appointment_time')
+            ->with('couple.users')
+            ->get();
+
+        $count = 0;
+
+        foreach ($appointments as $appointment) {
+            // appointment_time has no Eloquent cast (it's a raw MySQL TIME
+            // column), so it comes back as a plain "H:i:s" string, not a
+            // Carbon instance.
+            $appointmentAt = $appointment->appointment_date->copy()
+                ->setTimeFromTimeString($appointment->appointment_time);
+            $reminderAt = $appointmentAt->copy()->subMinutes($appointment->reminder_minutes_before);
+
+            // Fire once the reminder instant has passed, but not for
+            // appointments already in the past (e.g. a couple opening the
+            // app for the first time in weeks) - a stale "reminder" the day
+            // after the appointment happened isn't useful.
+            if (now()->lt($reminderAt) || now()->gt($appointmentAt)) {
+                continue;
+            }
+
+            if ($appointment->notify_user_1) {
+                $this->notificationService->createAppointmentNotification(
+                    $appointment,
+                    $appointment->couple->users->first()->id,
+                    $reminderAt
+                );
+                $count++;
+            }
+
+            if ($appointment->notify_user_2 && $appointment->couple->users->count() > 1) {
+                $this->notificationService->createAppointmentNotification(
+                    $appointment,
+                    $appointment->couple->users->last()->id,
+                    $reminderAt
+                );
+                $count++;
+            }
+        }
+
+        return $count;
     }
 
     private function shouldRemindToday(MedicationSchedule $schedule): bool
