@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Couple;
 use App\Models\CoupleInvitation;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 
 class AdminController extends Controller
@@ -16,11 +17,15 @@ class AdminController extends Controller
         $activeCouples = Couple::whereHas('users', function ($q) {
             $q->where('is_admin', false);
         })->count();
+        $failedNotifications = Notification::where('status', 'failed')->count();
+        $pendingNotifications = Notification::where('status', 'pending')->count();
 
         return view('admin.dashboard', [
             'totalUsers' => $totalUsers,
             'totalCouples' => $totalCouples,
             'activeCouples' => $activeCouples,
+            'failedNotifications' => $failedNotifications,
+            'pendingNotifications' => $pendingNotifications,
         ]);
     }
 
@@ -68,6 +73,22 @@ class AdminController extends Controller
         ]);
 
         return view('admin.couple-detail', ['couple' => $couple]);
+    }
+
+    public function notifications(Request $request)
+    {
+        $status = $request->query('status');
+
+        $notifications = Notification::with(['user', 'couple'])
+            ->when($status, fn ($q) => $q->where('status', $status))
+            ->orderBy('scheduled_for', 'desc')
+            ->paginate(50)
+            ->withQueryString();
+
+        return view('admin.notifications', [
+            'notifications' => $notifications,
+            'status' => $status,
+        ]);
     }
 
     public function deleteInvitation(CoupleInvitation $invitation)

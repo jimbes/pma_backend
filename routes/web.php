@@ -18,6 +18,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
     Route::get('/couples', [AdminController::class, 'couples'])->name('admin.couples');
     Route::get('/couples/{couple}', [AdminController::class, 'coupleDetail'])->name('admin.couple-detail');
+    Route::get('/notifications', [AdminController::class, 'notifications'])->name('admin.notifications');
     Route::delete('/users/{user}', [AdminController::class, 'deleteUser'])->name('admin.delete-user');
     Route::delete('/invitations/{invitation}', [AdminController::class, 'deleteInvitation'])->name('admin.delete-invitation');
     Route::post('/logout', [WebLoginController::class, 'logout'])->name('admin.logout');

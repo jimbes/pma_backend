@@ -124,11 +124,20 @@
                 <h3>Active Couples</h3>
                 <div class="number">{{ $activeCouples }}</div>
             </div>
+            <div class="card">
+                <h3>Pending Notifications</h3>
+                <div class="number">{{ $pendingNotifications }}</div>
+            </div>
+            <div class="card">
+                <h3>Failed Notifications</h3>
+                <div class="number">{{ $failedNotifications }}</div>
+            </div>
         </div>
 
         <div class="actions">
             <a href="{{ route('admin.users') }}" class="btn">Manage Users</a>
             <a href="{{ route('admin.couples') }}" class="btn">Manage Couples</a>
+            <a href="{{ route('admin.notifications') }}" class="btn">Notifications</a>
             <form action="{{ route('admin.logout') }}" method="POST" style="display: inline;">
                 @csrf
                 <button type="submit" class="btn secondary">Logout</button>
