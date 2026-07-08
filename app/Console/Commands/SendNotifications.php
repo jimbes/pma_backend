@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Appointment;
 use App\Models\MedicationSchedule;
+use App\Models\NotificationPreference;
 use App\Services\NotificationService;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -13,6 +14,9 @@ class SendNotifications extends Command
     protected $signature = 'notifications:send';
     protected $description = 'Process pending notifications and schedule reminders';
 
+    /** @var array<int, array<string, NotificationPreference>> keyed by [userId][type] */
+    private array $preferences = [];
+
     public function __construct(private NotificationService $notificationService)
     {
         parent::__construct();
@@ -20,6 +24,10 @@ class SendNotifications extends Command
 
     public function handle(): int
     {
+        foreach (NotificationPreference::all() as $pref) {
+            $this->preferences[$pref->user_id][$pref->type] = $pref;
+        }
+
         $this->info('Processing medication reminders...');
         $medicationCount = $this->sendMedicationReminders();
         $this->info("Created {$medicationCount} medication reminders");
@@ -32,6 +40,16 @@ class SendNotifications extends Command
         $this->info('Processed pending retries');
 
         return 0;
+    }
+
+    /**
+     * Null means "no preference row" - in that case reminders stay on by
+     * default (see notify_user_1/2 defaulting true at creation time), so
+     * only an explicit disabled row should suppress sending.
+     */
+    private function preferenceFor(int $userId, string $type): ?NotificationPreference
+    {
+        return $this->preferences[$userId][$type] ?? null;
     }
 
     private function sendMedicationReminders(): int
@@ -75,23 +93,35 @@ class SendNotifications extends Command
                     $scheduledFor = $reminderAt->format('Y-m-d H:i:s');
 
                     if ($schedule->notify_user_1) {
-                        $this->notificationService->createMedicationReminder(
-                            $schedule,
-                            $schedule->couple->users->first()->id,
-                            $scheduledFor,
-                            $offsetMinutes
-                        );
-                        $count++;
+                        $userId = $schedule->couple->users->first()->id;
+                        $pref = $this->preferenceFor($userId, 'medication_reminder');
+
+                        if (!$pref || $pref->enabled) {
+                            $this->notificationService->createMedicationReminder(
+                                $schedule,
+                                $userId,
+                                $scheduledFor,
+                                $offsetMinutes,
+                                $pref->channel ?? 'push'
+                            );
+                            $count++;
+                        }
                     }
 
                     if ($schedule->notify_user_2 && $schedule->couple->users->count() > 1) {
-                        $this->notificationService->createMedicationReminder(
-                            $schedule,
-                            $schedule->couple->users->last()->id,
-                            $scheduledFor,
-                            $offsetMinutes
-                        );
-                        $count++;
+                        $userId = $schedule->couple->users->last()->id;
+                        $pref = $this->preferenceFor($userId, 'medication_reminder');
+
+                        if (!$pref || $pref->enabled) {
+                            $this->notificationService->createMedicationReminder(
+                                $schedule,
+                                $userId,
+                                $scheduledFor,
+                                $offsetMinutes,
+                                $pref->channel ?? 'push'
+                            );
+                            $count++;
+                        }
                     }
                 }
             }
@@ -131,23 +161,35 @@ class SendNotifications extends Command
                 }
 
                 if ($appointment->notify_user_1) {
-                    $this->notificationService->createAppointmentNotification(
-                        $appointment,
-                        $appointment->couple->users->first()->id,
-                        $reminderAt,
-                        $offsetMinutes
-                    );
-                    $count++;
+                    $userId = $appointment->couple->users->first()->id;
+                    $pref = $this->preferenceFor($userId, 'appointment_reminder');
+
+                    if (!$pref || $pref->enabled) {
+                        $this->notificationService->createAppointmentNotification(
+                            $appointment,
+                            $userId,
+                            $reminderAt,
+                            $offsetMinutes,
+                            $pref->channel ?? 'push'
+                        );
+                        $count++;
+                    }
                 }
 
                 if ($appointment->notify_user_2 && $appointment->couple->users->count() > 1) {
-                    $this->notificationService->createAppointmentNotification(
-                        $appointment,
-                        $appointment->couple->users->last()->id,
-                        $reminderAt,
-                        $offsetMinutes
-                    );
-                    $count++;
+                    $userId = $appointment->couple->users->last()->id;
+                    $pref = $this->preferenceFor($userId, 'appointment_reminder');
+
+                    if (!$pref || $pref->enabled) {
+                        $this->notificationService->createAppointmentNotification(
+                            $appointment,
+                            $userId,
+                            $reminderAt,
+                            $offsetMinutes,
+                            $pref->channel ?? 'push'
+                        );
+                        $count++;
+                    }
                 }
             }
         }

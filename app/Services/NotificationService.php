@@ -21,7 +21,7 @@ class NotificationService
      * - included in the message so multiple reminders for the same
      * appointment (e.g. 24h before AND 12h before) read as distinct.
      */
-    public function createAppointmentNotification(Appointment $appointment, $userId, $scheduledFor, int $offsetMinutes = 60): void
+    public function createAppointmentNotification(Appointment $appointment, $userId, $scheduledFor, int $offsetMinutes = 60, string $channel = 'push'): void
     {
         $notification = Notification::firstOrCreate(
             [
@@ -37,7 +37,7 @@ class NotificationService
                     . ($appointment->location ? " à {$appointment->location}" : '')
                     . " le {$appointment->appointment_date->format('d/m/Y')}"
                     . ($appointment->appointment_time ? " à {$appointment->appointment_time}" : ''),
-                'channel' => 'push',
+                'channel' => $channel,
                 'status' => 'pending',
             ]
         );
@@ -54,7 +54,7 @@ class NotificationService
      * included in the message so multiple reminders for the same dose
      * (e.g. 1h before AND 15min before) read as distinct.
      */
-    public function createMedicationReminder(MedicationSchedule $schedule, $userId, $scheduledFor, int $offsetMinutes = 15): void
+    public function createMedicationReminder(MedicationSchedule $schedule, $userId, $scheduledFor, int $offsetMinutes = 15, string $channel = 'push'): void
     {
         $notification = Notification::firstOrCreate(
             [
@@ -67,7 +67,7 @@ class NotificationService
                 'couple_id' => $schedule->couple_id,
                 'subject' => 'Rappel: Prendre votre médicament (' . self::formatOffsetLabel($offsetMinutes) . ')',
                 'message' => "N'oubliez pas de prendre {$schedule->medication->name}",
-                'channel' => 'push',
+                'channel' => $channel,
                 'status' => 'pending',
             ]
         );
@@ -95,9 +95,10 @@ class NotificationService
         // process, so a dispatch() to the database queue could sit unsent
         // indefinitely. Sending synchronously within the cron command
         // itself (dispatchSync) guarantees it actually runs.
-        if ($notification->channel === 'push') {
+        if (in_array($notification->channel, ['push', 'both'], true)) {
             SendPushNotification::dispatchSync($notification);
-        } elseif ($notification->channel === 'email') {
+        }
+        if (in_array($notification->channel, ['email', 'both'], true)) {
             SendEmailNotification::dispatchSync($notification);
         }
     }

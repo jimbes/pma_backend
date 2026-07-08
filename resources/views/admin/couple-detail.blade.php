@@ -92,6 +92,9 @@
         .badge.upcoming { background: #e2e3e5; color: #383d41; }
         .badge.yes { background: #d4edda; color: #155724; }
         .badge.no { background: #f8d7da; color: #721c24; }
+        .badge.sent { background: #d4edda; color: #155724; }
+        .badge.pending { background: #fff3cd; color: #856404; }
+        .badge.failed { background: #f8d7da; color: #721c24; }
         .muted {
             color: #999;
         }
@@ -285,6 +288,41 @@
             </table>
             @else
             <div class="empty">Aucun rendez-vous</div>
+            @endif
+        </div>
+
+        <!-- Notifications -->
+        <div class="section">
+            <div class="section-title">Notifications ({{ $couple->notifications->count() }} dernières)</div>
+            @if($couple->notifications->count() > 0)
+            <table>
+                <thead>
+                    <tr>
+                        <th>Destinataire</th>
+                        <th>Type</th>
+                        <th>Canal</th>
+                        <th>Prévue le</th>
+                        <th>Statut</th>
+                        <th>Envoyée le</th>
+                        <th>Erreur</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($couple->notifications as $notification)
+                    <tr>
+                        <td>{{ $notification->user->name ?? '-' }}</td>
+                        <td>{{ $notification->type }}</td>
+                        <td>{{ $notification->channel }}</td>
+                        <td>{{ $notification->scheduled_for?->format('d/m/Y H:i') ?? '-' }}</td>
+                        <td><span class="badge {{ $notification->status }}">{{ $notification->status }}</span></td>
+                        <td>{{ $notification->sent_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                        <td class="muted">{{ $notification->failed_reason ?? '-' }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @else
+            <div class="empty">Aucune notification</div>
             @endif
         </div>
 

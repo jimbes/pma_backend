@@ -62,6 +62,9 @@ class AdminController extends Controller
             'invitations' => function ($q) {
                 $q->orderBy('created_at', 'desc');
             },
+            'notifications' => function ($q) {
+                $q->with('user')->orderBy('scheduled_for', 'desc')->limit(100);
+            },
         ]);
 
         return view('admin.couple-detail', ['couple' => $couple]);
