@@ -10,7 +10,7 @@ class MedicationSchedule extends Model
     use HasFactory;
 
     protected $table = 'medication_schedules';
-    protected $fillable = ['medication_id', 'couple_id', 'journey_stage_id', 'start_date', 'end_date', 'frequency', 'days_of_week', 'reminder_times', 'reminder_offset_hours', 'notify_user_1', 'notify_user_2'];
+    protected $fillable = ['medication_id', 'couple_id', 'journey_stage_id', 'start_date', 'end_date', 'frequency', 'days_of_week', 'reminder_times', 'reminder_offsets', 'notify_user_1', 'notify_user_2'];
 
     protected function casts(): array
     {
@@ -19,6 +19,7 @@ class MedicationSchedule extends Model
             'end_date' => 'date',
             'days_of_week' => 'array',
             'reminder_times' => 'array',
+            'reminder_offsets' => 'array',
             'notify_user_1' => 'boolean',
             'notify_user_2' => 'boolean',
         ];

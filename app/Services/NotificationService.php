@@ -17,8 +17,11 @@ class NotificationService
      * this is for - paired with the unique index on notifications, this is
      * what stops the 15-minute cron from re-creating the same reminder
      * every run for the rest of the day.
+     * @param int $offsetMinutes How long before the appointment this fires
+     * - included in the message so multiple reminders for the same
+     * appointment (e.g. 24h before AND 12h before) read as distinct.
      */
-    public function createAppointmentNotification(Appointment $appointment, $userId, $scheduledFor): void
+    public function createAppointmentNotification(Appointment $appointment, $userId, $scheduledFor, int $offsetMinutes = 60): void
     {
         $notification = Notification::firstOrCreate(
             [
@@ -29,7 +32,7 @@ class NotificationService
             ],
             [
                 'couple_id' => $appointment->couple_id,
-                'subject' => 'Rappel: Rendez-vous médical',
+                'subject' => 'Rappel: Rendez-vous médical (' . self::formatOffsetLabel($offsetMinutes) . ')',
                 'message' => "Vous avez un rendez-vous \"{$appointment->title}\""
                     . ($appointment->location ? " à {$appointment->location}" : '')
                     . " le {$appointment->appointment_date->format('d/m/Y')}"
@@ -46,9 +49,12 @@ class NotificationService
 
     /**
      * @param \DateTimeInterface $scheduledFor The exact reminder instant
-     * (this schedule's dose time, today) - see createAppointmentNotification.
+     * (dose time minus this offset, today) - see createAppointmentNotification.
+     * @param int $offsetMinutes How long before the dose this fires -
+     * included in the message so multiple reminders for the same dose
+     * (e.g. 1h before AND 15min before) read as distinct.
      */
-    public function createMedicationReminder(MedicationSchedule $schedule, $userId, $scheduledFor): void
+    public function createMedicationReminder(MedicationSchedule $schedule, $userId, $scheduledFor, int $offsetMinutes = 15): void
     {
         $notification = Notification::firstOrCreate(
             [
@@ -59,7 +65,7 @@ class NotificationService
             ],
             [
                 'couple_id' => $schedule->couple_id,
-                'subject' => 'Rappel: Prendre votre médicament',
+                'subject' => 'Rappel: Prendre votre médicament (' . self::formatOffsetLabel($offsetMinutes) . ')',
                 'message' => "N'oubliez pas de prendre {$schedule->medication->name}",
                 'channel' => 'push',
                 'status' => 'pending',
@@ -69,6 +75,18 @@ class NotificationService
         if ($notification->wasRecentlyCreated) {
             $this->queue($notification);
         }
+    }
+
+    private static function formatOffsetLabel(int $minutes): string
+    {
+        if ($minutes <= 0) {
+            return 'maintenant';
+        }
+        if ($minutes % 60 === 0) {
+            $hours = intdiv($minutes, 60);
+            return $hours === 1 ? 'dans 1h' : "dans {$hours}h";
+        }
+        return "dans {$minutes}min";
     }
 
     public function queue(Notification $notification): void

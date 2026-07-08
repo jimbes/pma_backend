@@ -22,7 +22,10 @@ class AppointmentController extends Controller
             'appointment_date' => 'required|date',
             'appointment_time' => 'nullable|date_format:H:i',
             'type' => 'nullable|in:echo,blood_test,consult,ponction,transfert,other',
-            'reminder_minutes_before' => 'integer|min:0',
+            // Minutes before the appointment - can have several reminders
+            // (e.g. 24h before AND 12h before), not just one.
+            'reminder_offsets' => 'array',
+            'reminder_offsets.*' => 'integer|min:0',
             'location' => 'nullable|string',
             'doctor_name' => 'nullable|string',
             'description' => 'nullable|string',
@@ -37,7 +40,7 @@ class AppointmentController extends Controller
             'appointment_date' => $request->appointment_date,
             'appointment_time' => $request->appointment_time,
             'type' => $request->type,
-            'reminder_minutes_before' => $request->reminder_minutes_before ?? 60,
+            'reminder_offsets' => $request->reminder_offsets ?: [60],
             'location' => $request->location,
             'doctor_name' => $request->doctor_name,
             'description' => $request->description,
@@ -65,7 +68,10 @@ class AppointmentController extends Controller
             'appointment_date' => 'date',
             'appointment_time' => 'nullable|date_format:H:i',
             'type' => 'nullable|in:echo,blood_test,consult,ponction,transfert,other',
-            'reminder_minutes_before' => 'integer|min:0',
+            // Minutes before the appointment - can have several reminders
+            // (e.g. 24h before AND 12h before), not just one.
+            'reminder_offsets' => 'array',
+            'reminder_offsets.*' => 'integer|min:0',
             'location' => 'nullable|string',
             'doctor_name' => 'nullable|string',
             'description' => 'nullable|string',

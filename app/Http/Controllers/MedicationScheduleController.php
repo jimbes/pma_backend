@@ -39,8 +39,10 @@ class MedicationScheduleController extends Controller
             'days_of_week.*' => 'integer|min:0|max:6',
             'reminder_times' => 'required|array',
             'reminder_times.*' => 'string',
-            // Despite the column name, this is minutes-before-dose (max 24h worth).
-            'reminder_offset_hours' => 'integer|min:0|max:1440',
+            // Minutes before each dose time - a dose can have several
+            // reminders (e.g. 1h before AND 15min before), not just one.
+            'reminder_offsets' => 'array',
+            'reminder_offsets.*' => 'integer|min:0|max:1440',
             'notify_user_1' => 'boolean',
             'notify_user_2' => 'boolean',
         ]);
@@ -54,7 +56,7 @@ class MedicationScheduleController extends Controller
             'frequency' => $request->frequency,
             'days_of_week' => $request->frequency === 'specific_days' ? $request->days_of_week : null,
             'reminder_times' => $request->reminder_times,
-            'reminder_offset_hours' => $request->reminder_offset_hours ?? 1,
+            'reminder_offsets' => $request->reminder_offsets ?: [15],
             'notify_user_1' => $request->boolean('notify_user_1', true),
             'notify_user_2' => $request->boolean('notify_user_2', true),
         ]);
@@ -83,8 +85,8 @@ class MedicationScheduleController extends Controller
             'days_of_week.*' => 'integer|min:0|max:6',
             'reminder_times' => 'array',
             'reminder_times.*' => 'string',
-            // Despite the column name, this is minutes-before-dose (max 24h worth).
-            'reminder_offset_hours' => 'integer|min:0|max:1440',
+            'reminder_offsets' => 'array',
+            'reminder_offsets.*' => 'integer|min:0|max:1440',
             'notify_user_1' => 'boolean',
             'notify_user_2' => 'boolean',
         ]);
@@ -96,7 +98,7 @@ class MedicationScheduleController extends Controller
             'frequency',
             'days_of_week',
             'reminder_times',
-            'reminder_offset_hours',
+            'reminder_offsets',
             'notify_user_1',
             'notify_user_2',
         ]));

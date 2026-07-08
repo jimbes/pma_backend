@@ -17,7 +17,7 @@ class Appointment extends Model
         'appointment_date',
         'appointment_time',
         'type',
-        'reminder_minutes_before',
+        'reminder_offsets',
         'location',
         'doctor_name',
         'notify_user_1',
@@ -29,6 +29,7 @@ class Appointment extends Model
     {
         return [
             'appointment_date' => 'date',
+            'reminder_offsets' => 'array',
             'notify_user_1' => 'boolean',
             'notify_user_2' => 'boolean',
             'completed' => 'boolean',
