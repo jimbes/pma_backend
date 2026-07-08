@@ -55,7 +55,7 @@ class AdminController extends Controller
     {
         $couple->load([
             'users' => function ($q) {
-                $q->where('is_admin', false);
+                $q->where('is_admin', false)->with('deviceTokens');
             },
             'appointments' => function ($q) {
                 $q->orderBy('appointment_date', 'desc');

@@ -157,6 +157,7 @@
                         <th>Nom</th>
                         <th>Email</th>
                         <th>Inscrit le</th>
+                        <th>Appareils (push)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -165,6 +166,16 @@
                         <td>{{ $member->name }}</td>
                         <td>{{ $member->email }}</td>
                         <td>{{ $member->created_at->format('d/m/Y H:i') }}</td>
+                        <td>
+                            @if($member->deviceTokens->count() > 0)
+                                @foreach($member->deviceTokens as $token)
+                                    <span class="badge {{ $token->active ? 'yes' : 'no' }}">{{ $token->platform }} · {{ $token->active ? 'actif' : 'inactif' }}</span>
+                                    <span class="muted">({{ $token->last_used_at?->format('d/m/Y H:i') ?? $token->created_at->format('d/m/Y H:i') }})</span><br>
+                                @endforeach
+                            @else
+                                <span class="badge no">Aucun appareil enregistré</span>
+                            @endif
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
