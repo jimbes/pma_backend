@@ -52,7 +52,10 @@ class SendNotifications extends Command
                 continue;
             }
 
-            $offsets = $schedule->reminder_offsets ?: [15];
+            // ?? (not ?:) - an intentionally-empty array (reminders turned
+            // off for this schedule) must stay empty, not fall back to the
+            // default; only a genuinely unset (null) value should.
+            $offsets = $schedule->reminder_offsets ?? [15];
 
             foreach ($schedule->reminder_times as $time) {
                 $doseAt = Carbon::parse("{$today} {$time}");
@@ -113,7 +116,8 @@ class SendNotifications extends Command
             $appointmentAt = $appointment->appointment_date->copy()
                 ->setTimeFromTimeString($appointment->appointment_time);
 
-            $offsets = $appointment->reminder_offsets ?: [60];
+            // See note above re: ?? vs ?: for the medication reminders.
+            $offsets = $appointment->reminder_offsets ?? [60];
 
             foreach ($offsets as $offsetMinutes) {
                 $reminderAt = $appointmentAt->copy()->subMinutes($offsetMinutes);

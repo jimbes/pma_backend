@@ -40,7 +40,9 @@ class AppointmentController extends Controller
             'appointment_date' => $request->appointment_date,
             'appointment_time' => $request->appointment_time,
             'type' => $request->type,
-            'reminder_offsets' => $request->reminder_offsets ?: [60],
+            // ?: would treat an intentionally-empty array (reminders
+            // turned off) as falsy and reset it back to the default.
+            'reminder_offsets' => $request->has('reminder_offsets') ? $request->reminder_offsets : [60],
             'location' => $request->location,
             'doctor_name' => $request->doctor_name,
             'description' => $request->description,

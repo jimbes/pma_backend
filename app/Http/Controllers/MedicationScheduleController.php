@@ -56,7 +56,9 @@ class MedicationScheduleController extends Controller
             'frequency' => $request->frequency,
             'days_of_week' => $request->frequency === 'specific_days' ? $request->days_of_week : null,
             'reminder_times' => $request->reminder_times,
-            'reminder_offsets' => $request->reminder_offsets ?: [15],
+            // ?: would treat an intentionally-empty array (reminders
+            // turned off) as falsy and reset it back to the default.
+            'reminder_offsets' => $request->has('reminder_offsets') ? $request->reminder_offsets : [15],
             'notify_user_1' => $request->boolean('notify_user_1', true),
             'notify_user_2' => $request->boolean('notify_user_2', true),
         ]);
