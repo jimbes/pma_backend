@@ -25,7 +25,13 @@ class MedicationScheduleController extends Controller
     {
         $request->validate([
             'medication_id' => 'required|exists:medications,id',
-            'journey_stage_id' => 'required|exists:journey_stages,id',
+            // Optional: medications don't need to be pre-assigned to a
+            // journey phase - in practice the doctor decides dosage/duration
+            // per visit, before the couple necessarily knows which phase
+            // that falls under. The schedule's own start/end date is what
+            // actually governs agenda visibility; the phase link (if any)
+            // is just an informational tag.
+            'journey_stage_id' => 'nullable|exists:journey_stages,id',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
             'frequency' => 'required|in:daily,specific_days',
