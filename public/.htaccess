@@ -8,8 +8,12 @@
     # Force HTTPS - the app only ever calls the API over https://, but
     # without this the server itself still answers plain http:// requests
     # in cleartext instead of rejecting/redirecting them.
+    # A root-level .htaccess above this project already rewrites http://
+    # requests into public/ before this file sees them, so REQUEST_URI
+    # here can already start with "public/" - strip that prefix so the
+    # redirect target matches the real external URL, not an internal one.
     RewriteCond %{HTTPS} off
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+    RewriteRule ^(?:public/)?(.*)$ https://%{HTTP_HOST}/$1 [L,R=301]
 
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
