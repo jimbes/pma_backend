@@ -8,6 +8,8 @@ Route::get('/', function () {
     return view('landing');
 });
 
+Route::view('/privacy', 'privacy')->name('privacy');
+
 // Login routes
 Route::get('/login', [WebLoginController::class, 'show'])->name('admin.login');
 Route::post('/login', [WebLoginController::class, 'login'])->name('admin.login.post');

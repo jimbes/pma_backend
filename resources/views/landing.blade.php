@@ -184,6 +184,9 @@
         <p style="margin-top: 1rem; font-size: 0.9rem;">
             For healthcare professionals, use the <a href="/dashboard" style="color: #667eea; text-decoration: none;">admin dashboard</a> to manage users.
         </p>
+        <p style="margin-top: 1rem; font-size: 0.9rem;">
+            <a href="{{ route('privacy') }}" style="color: #667eea; text-decoration: none;">Politique de confidentialité</a>
+        </p>
     </footer>
 
     <script>
