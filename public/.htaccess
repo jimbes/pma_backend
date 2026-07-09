@@ -5,6 +5,12 @@
 
     RewriteEngine On
 
+    # Force HTTPS - the app only ever calls the API over https://, but
+    # without this the server itself still answers plain http:// requests
+    # in cleartext instead of rejecting/redirecting them.
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
     # Handle Authorization Header
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
