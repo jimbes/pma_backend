@@ -13,4 +13,7 @@ Artisan::command('inspire', function () {
 // never actually loaded - `php artisan schedule:list` confirmed this ran
 // with zero tasks registered despite Kernel.php looking correct. This is
 // the file Laravel 11+ actually reads schedule definitions from.
-Schedule::command('notifications:send')->everyFifteenMinutes();
+// The cPanel cron entry already invokes `schedule:run` every minute, so
+// throttling here to every 15 min just adds up to a 14-minute delivery lag
+// on top - reminder windows don't align to a fixed :00/:15/:30/:45 grid.
+Schedule::command('notifications:send')->everyMinute();
