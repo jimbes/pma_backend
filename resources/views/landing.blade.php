@@ -92,29 +92,6 @@
             margin-top: 3rem;
             border-top: 1px solid #ddd;
         }
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 2rem;
-            margin: 2rem 0;
-            text-align: center;
-        }
-        .stat {
-            padding: 2rem;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #667eea;
-        }
-        .stat-label {
-            color: #666;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
     </style>
 </head>
 <body>
@@ -163,40 +140,13 @@
             <a href="#" class="btn">Get Started Today</a>
         </div>
 
-        <div class="stats">
-            <div class="stat">
-                <div class="stat-number" id="totalUsers">-</div>
-                <div class="stat-label">Registered Users</div>
-            </div>
-            <div class="stat">
-                <div class="stat-number" id="totalCouples">-</div>
-                <div class="stat-label">Active Couples</div>
-            </div>
-            <div class="stat">
-                <div class="stat-number" id="totalAppointments">-</div>
-                <div class="stat-label">Appointments Tracked</div>
-            </div>
-        </div>
     </div>
 
     <footer>
         <p>&copy; 2026 PMA - Couples Medical Appointment Manager. All rights reserved.</p>
         <p style="margin-top: 1rem; font-size: 0.9rem;">
-            For healthcare professionals, use the <a href="/dashboard" style="color: #667eea; text-decoration: none;">admin dashboard</a> to manage users.
-        </p>
-        <p style="margin-top: 1rem; font-size: 0.9rem;">
             <a href="{{ route('privacy') }}" style="color: #667eea; text-decoration: none;">Politique de confidentialité</a>
         </p>
     </footer>
-
-    <script>
-        fetch('/api/v1/admin/stats')
-            .then(response => response.json())
-            .catch(() => {
-                document.getElementById('totalUsers').textContent = '0';
-                document.getElementById('totalCouples').textContent = '0';
-                document.getElementById('totalAppointments').textContent = '0';
-            });
-    </script>
 </body>
 </html>
