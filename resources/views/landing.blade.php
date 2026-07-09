@@ -146,6 +146,8 @@
         <p>&copy; 2026 PMA - Couples Medical Appointment Manager. All rights reserved.</p>
         <p style="margin-top: 1rem; font-size: 0.9rem;">
             <a href="{{ route('privacy') }}" style="color: #667eea; text-decoration: none;">Politique de confidentialité</a>
+            ·
+            <a href="{{ route('account-deletion') }}" style="color: #667eea; text-decoration: none;">Suppression de compte</a>
         </p>
     </footer>
 </body>

@@ -149,8 +149,10 @@
                     <li><strong class="text-slate-800 font-medium">Opposition</strong> et retrait du consentement à tout moment</li>
                 </ul>
                 <p class="mt-4 text-slate-600 leading-relaxed">
-                    Pour exercer l'un de ces droits, supprimez votre compte directement depuis
-                    l'application ou contactez-nous à l'adresse indiquée en section 10.
+                    Pour exercer l'un de ces droits, notamment demander la suppression de votre
+                    compte, utilisez notre
+                    <a href="{{ route('account-deletion') }}" class="text-indigo-600 hover:underline">formulaire de suppression de compte</a>
+                    ou contactez-nous à l'adresse indiquée en section 10.
                 </p>
             </section>
 
@@ -203,6 +205,7 @@
             <div class="flex gap-6">
                 <a href="/" class="hover:text-slate-600">Accueil</a>
                 <a href="{{ route('privacy') }}" class="text-slate-600 font-medium">Confidentialité</a>
+                <a href="{{ route('account-deletion') }}" class="hover:text-slate-600">Suppression de compte</a>
             </div>
         </div>
     </footer>

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountDeletionController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Auth\WebLoginController;
 use Illuminate\Support\Facades\Route;
@@ -9,6 +10,9 @@ Route::get('/', function () {
 });
 
 Route::view('/privacy', 'privacy')->name('privacy');
+
+Route::get('/delete-account', [AccountDeletionController::class, 'show'])->name('account-deletion');
+Route::post('/delete-account', [AccountDeletionController::class, 'submit'])->name('account-deletion.submit');
 
 // Login routes
 Route::get('/login', [WebLoginController::class, 'show'])->name('admin.login');
