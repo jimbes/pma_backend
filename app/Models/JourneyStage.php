@@ -20,6 +20,7 @@ class JourneyStage extends Model
         'end_date',
         'duration_days',
         'manual_end_date',
+        'manual_start_date',
         'status',
         'reminder_enabled',
         'notes',
@@ -35,6 +36,7 @@ class JourneyStage extends Model
             'order' => 'integer',
             'reminder_enabled' => 'boolean',
             'manual_end_date' => 'boolean',
+            'manual_start_date' => 'boolean',
         ];
     }
 

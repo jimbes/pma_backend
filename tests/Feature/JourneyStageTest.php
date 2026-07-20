@@ -57,6 +57,27 @@ class JourneyStageTest extends TestCase
         $this->assertDatabaseHas('journey_stages', ['id' => $stage->id, 'status' => 'in_progress']);
     }
 
+    public function test_authenticated_user_can_set_manual_start_date_on_journey_stage(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+
+        $stage = JourneyStage::factory()->create(['couple_id' => $couple->id]);
+
+        $response = $this->actingAsUser($user)
+            ->putJson("/api/v1/journey-stages/{$stage->id}", [
+                'start_date' => '2026-08-15',
+                'manual_start_date' => true,
+            ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('journey_stages', [
+            'id' => $stage->id,
+            'manual_start_date' => true,
+        ]);
+        $this->assertSame('2026-08-15', $stage->fresh()->start_date->toDateString());
+    }
+
     public function test_authenticated_user_can_delete_journey_stage(): void
     {
         $couple = $this->createTestCouple();
