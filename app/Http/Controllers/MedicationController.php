@@ -73,11 +73,11 @@ class MedicationController extends Controller
     {
         $medication = Medication::findOrFail($id);
         $this->authorize('delete', $medication);
-        // Explicit cascade rather than relying solely on the DB foreign key
-        // (this hosting's MySQL config has been unreliable about enforcing
-        // it, leaving orphaned schedules that reference a deleted medication).
-        $medication->schedules()->delete();
-        $medication->delete();
-        return response()->json(['message' => 'Medication deleted']);
+        // Soft-deactivate rather than hard-delete: schedules and taken-log
+        // history for this medication must survive so past treatment stays
+        // visible. index() already filters to active=true, so this is
+        // enough to drop it out of the active list.
+        $medication->update(['active' => false]);
+        return response()->json(['message' => 'Medication deactivated']);
     }
 }
