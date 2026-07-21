@@ -75,6 +75,17 @@ class SendNotifications extends Command
             // default; only a genuinely unset (null) value should.
             $offsets = $schedule->reminder_offsets ?? [15];
 
+            // The specific weekday this reminder is for, in the app's
+            // 0=Monday..6=Sunday convention (matches the client's
+            // days_of_week values and its local-alarm id scheme) - only
+            // meaningful for specific_days schedules, where the client
+            // schedules one independently-recurring local alarm per
+            // weekday. "Today" is necessarily one of the configured days,
+            // since shouldRemindToday() already gated this loop on that.
+            $weekday = $schedule->frequency === 'specific_days'
+                ? now()->dayOfWeekIso - 1
+                : null;
+
             foreach ($schedule->reminder_times as $time) {
                 $doseAt = Carbon::parse("{$today} {$time}");
 
@@ -102,7 +113,9 @@ class SendNotifications extends Command
                                 $userId,
                                 $scheduledFor,
                                 $offsetMinutes,
-                                $pref->channel ?? 'push'
+                                $pref->channel ?? 'push',
+                                $time,
+                                $weekday
                             );
                             $count++;
                         }
@@ -118,7 +131,9 @@ class SendNotifications extends Command
                                 $userId,
                                 $scheduledFor,
                                 $offsetMinutes,
-                                $pref->channel ?? 'push'
+                                $pref->channel ?? 'push',
+                                $time,
+                                $weekday
                             );
                             $count++;
                         }
@@ -204,8 +219,20 @@ class SendNotifications extends Command
         }
 
         if ($schedule->frequency === 'specific_days') {
-            $todayDayOfWeek = now()->dayOfWeek;
-            $allowedDays = json_decode($schedule->days_of_week, true) ?? [];
+            // days_of_week is already cast to an array by the model - was
+            // being passed through json_decode() here, which throws a
+            // TypeError on a non-string input, crashing this command (and,
+            // since it runs before sendAppointmentReminders() in handle(),
+            // silently also skipping every appointment reminder) on any run
+            // that reaches a specific_days schedule.
+            //
+            // dayOfWeekIso (1=Mon..7=Sun) - 1 matches the app's own
+            // 0=Monday..6=Sunday convention for days_of_week (see the
+            // matching note in the Flutter local-notification scheduler)
+            // - now()->dayOfWeek (Carbon's native 0=Sunday..6=Saturday) does
+            // not, and was comparing against the wrong numbering.
+            $todayDayOfWeek = now()->dayOfWeekIso - 1;
+            $allowedDays = $schedule->days_of_week ?? [];
             return in_array($todayDayOfWeek, $allowedDays);
         }
 

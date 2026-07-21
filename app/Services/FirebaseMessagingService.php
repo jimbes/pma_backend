@@ -72,13 +72,18 @@ class FirebaseMessagingService
      * 'invalid_token' => bool] - invalid_token flags tokens the caller
      * should deactivate (uninstalled app, expired token, etc.) rather than
      * retry.
+     *
+     * Data-only (no top-level "notification" block) so Android never
+     * auto-displays this - the client always decides how/whether to show
+     * it itself (see firebaseMessagingBackgroundHandler /
+     * PushNotificationService.onMessage in the Flutter app), which is what
+     * lets it compute a notification id matching its own local-alarm
+     * scheduler and avoid showing a duplicate when both fire for the same
+     * reminder. $data must include 'title'/'body' since there's no
+     * notification block to carry them.
      */
-    public function sendToToken(
-        string $token,
-        string $title,
-        string $body,
-        array $data = []
-    ): array {
+    public function sendToToken(string $token, array $data): array
+    {
         $projectId = config('services.firebase.project_id');
 
         try {
@@ -86,10 +91,6 @@ class FirebaseMessagingService
                 ->post("https://fcm.googleapis.com/v1/projects/{$projectId}/messages:send", [
                     'message' => [
                         'token' => $token,
-                        'notification' => [
-                            'title' => $title,
-                            'body' => $body,
-                        ],
                         'data' => array_map('strval', $data),
                         'android' => [
                             'priority' => 'high',

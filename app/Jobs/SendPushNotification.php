@@ -37,17 +37,30 @@ class SendPushNotification implements ShouldQueue
 
         $anySucceeded = false;
 
+        $data = [
+            'title' => $this->notification->subject,
+            'body' => $this->notification->message,
+            'type' => $this->notification->type,
+            'related_entity_id' => $this->notification->related_entity_id,
+            'notification_id' => $this->notification->id,
+        ];
+        // Only present for medication/appointment reminders - lets the
+        // client recompute the same notification id its own local-alarm
+        // scheduler used for this reminder (see notification_id.dart), so
+        // the push and a working local alarm collapse into a single
+        // notification instead of showing a duplicate.
+        if ($this->notification->offset_minutes !== null) {
+            $data['offset_minutes'] = $this->notification->offset_minutes;
+        }
+        if ($this->notification->dose_time !== null) {
+            $data['dose_time'] = $this->notification->dose_time;
+        }
+        if ($this->notification->weekday !== null) {
+            $data['weekday'] = $this->notification->weekday;
+        }
+
         foreach ($tokens as $deviceToken) {
-            $result = $fcm->sendToToken(
-                $deviceToken->token,
-                $this->notification->subject,
-                $this->notification->message,
-                [
-                    'type' => $this->notification->type,
-                    'related_entity_id' => $this->notification->related_entity_id,
-                    'notification_id' => $this->notification->id,
-                ],
-            );
+            $result = $fcm->sendToToken($deviceToken->token, $data);
 
             if ($result['success']) {
                 $anySucceeded = true;

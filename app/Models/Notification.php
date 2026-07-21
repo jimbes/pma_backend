@@ -9,7 +9,7 @@ class Notification extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['couple_id', 'user_id', 'type', 'related_entity_id', 'scheduled_for', 'subject', 'message', 'channel', 'push_token', 'status', 'sent_at', 'failed_reason', 'retry_count', 'next_retry_at'];
+    protected $fillable = ['couple_id', 'user_id', 'type', 'related_entity_id', 'scheduled_for', 'offset_minutes', 'dose_time', 'weekday', 'subject', 'message', 'channel', 'push_token', 'status', 'sent_at', 'failed_reason', 'retry_count', 'next_retry_at'];
 
     protected function casts(): array
     {
