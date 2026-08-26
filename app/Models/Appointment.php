@@ -12,6 +12,7 @@ class Appointment extends Model
     protected $fillable = [
         'couple_id',
         'created_by',
+        'journey_stage_id',
         'title',
         'description',
         'appointment_date',
@@ -44,5 +45,10 @@ class Appointment extends Model
     public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function journeyStage()
+    {
+        return $this->belongsTo(JourneyStage::class);
     }
 }

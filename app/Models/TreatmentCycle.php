@@ -21,6 +21,11 @@ class TreatmentCycle extends Model
         return $this->belongsTo(Couple::class);
     }
 
+    public function journeyStages()
+    {
+        return $this->hasMany(JourneyStage::class);
+    }
+
     public function isInProgress()
     {
         return $this->status === 'in_progress';

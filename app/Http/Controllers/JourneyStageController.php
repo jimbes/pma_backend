@@ -12,14 +12,14 @@ class JourneyStageController extends Controller
 
     public function index()
     {
-        $stages = auth()->user()->couple->journeyStages()->orderBy('order')->orderBy('start_date')->get();
+        $cycle = auth()->user()->couple->currentTreatmentCycle();
+        $stages = $cycle->journeyStages()->orderBy('order')->orderBy('start_date')->get();
         return response()->json(['journey_stages' => $stages]);
     }
 
     public function store(Request $request)
     {
         $request->validate([
-            'treatment_cycle_id' => 'nullable|integer|exists:treatment_cycles,id',
             'type' => 'required|in:preparation,stimulation,controle,declenchement,ponction,transfert,attente_test',
             'custom_name' => 'nullable|string|max:255',
             'order' => 'integer|min:0',
@@ -29,14 +29,17 @@ class JourneyStageController extends Controller
             'duration_days' => 'nullable|integer|min:1',
             'manual_end_date' => 'boolean',
             'manual_start_date' => 'boolean',
-            'status' => 'in:upcoming,in_progress,done',
+            'status' => 'in:upcoming,in_progress,done,skipped',
             'reminder_enabled' => 'boolean',
             'notes' => 'nullable|string',
         ]);
 
+        // A new stage always belongs to the couple's current cycle - never a
+        // client-supplied value - so it can't accidentally land in an
+        // archived (read-only) cycle.
         $stage = JourneyStage::create([
             'couple_id' => auth()->user()->couple_id,
-            'treatment_cycle_id' => $request->treatment_cycle_id,
+            'treatment_cycle_id' => auth()->user()->couple->currentTreatmentCycle()->id,
             'type' => $request->type,
             'custom_name' => $request->custom_name,
             'order' => $request->order ?? 0,
@@ -67,7 +70,6 @@ class JourneyStageController extends Controller
         $this->authorize('update', $stage);
 
         $request->validate([
-            'treatment_cycle_id' => 'nullable|integer|exists:treatment_cycles,id',
             'type' => 'in:preparation,stimulation,controle,declenchement,ponction,transfert,attente_test',
             'custom_name' => 'nullable|string|max:255',
             'order' => 'integer|min:0',
@@ -77,13 +79,26 @@ class JourneyStageController extends Controller
             'duration_days' => 'nullable|integer|min:1',
             'manual_end_date' => 'boolean',
             'manual_start_date' => 'boolean',
-            'status' => 'in:upcoming,in_progress,done',
+            'status' => 'in:upcoming,in_progress,done,skipped',
             'reminder_enabled' => 'boolean',
             'notes' => 'nullable|string',
         ]);
 
+        // Skipping a stage means it's excluded from the date chain going
+        // forward and its medication reminders should stop - cap (don't
+        // delete, history stays intact) any linked schedule's end_date at
+        // yesterday so SendNotifications' date-range filter naturally
+        // excludes it, mirroring the same range check it already uses.
+        if ($request->status === 'skipped' && $stage->status !== 'skipped') {
+            $yesterday = now()->subDay()->toDateString();
+            foreach ($stage->medicationSchedules as $schedule) {
+                if (!$schedule->end_date || $schedule->end_date->toDateString() >= $yesterday) {
+                    $schedule->update(['end_date' => $yesterday]);
+                }
+            }
+        }
+
         $stage->update($request->only([
-            'treatment_cycle_id',
             'type',
             'custom_name',
             'order',

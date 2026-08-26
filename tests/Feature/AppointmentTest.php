@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Appointment;
+use App\Models\JourneyStage;
 use Tests\TestCase;
 
 class AppointmentTest extends TestCase
@@ -70,6 +71,23 @@ class AppointmentTest extends TestCase
 
         $response->assertStatus(200);
         $this->assertTrue($response->json('appointment.completed'));
+    }
+
+    public function test_authenticated_user_can_link_appointment_to_a_journey_stage(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+        $stage = JourneyStage::factory()->create(['couple_id' => $couple->id]);
+
+        $response = $this->actingAsUser($user)
+            ->postJson('/api/v1/appointments', [
+                'title' => 'Consultation post-stimulation',
+                'appointment_date' => '2026-07-15',
+                'journey_stage_id' => $stage->id,
+            ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('appointments', ['title' => 'Consultation post-stimulation', 'journey_stage_id' => $stage->id]);
     }
 
     public function test_user_cannot_access_other_couples_appointments(): void

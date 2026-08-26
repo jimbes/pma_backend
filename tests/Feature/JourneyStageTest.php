@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\JourneyStage;
+use App\Models\MedicationSchedule;
 use Tests\TestCase;
 
 class JourneyStageTest extends TestCase
@@ -104,5 +105,68 @@ class JourneyStageTest extends TestCase
             ->getJson("/api/v1/journey-stages/{$stage->id}");
 
         $response->assertStatus(403);
+    }
+
+    public function test_skipping_a_stage_cancels_linked_medication_schedule_reminders(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+
+        $stage = JourneyStage::factory()->create(['couple_id' => $couple->id]);
+        $schedule = MedicationSchedule::factory()->create([
+            'couple_id' => $couple->id,
+            'journey_stage_id' => $stage->id,
+            'end_date' => now()->addDays(10)->toDateString(),
+        ]);
+
+        $response = $this->actingAsUser($user)
+            ->putJson("/api/v1/journey-stages/{$stage->id}", ['status' => 'skipped']);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('journey_stages', ['id' => $stage->id, 'status' => 'skipped']);
+        $this->assertSame(
+            now()->subDay()->toDateString(),
+            $schedule->fresh()->end_date->toDateString(),
+        );
+    }
+
+    public function test_index_only_returns_current_cycle_stages(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+
+        // Goes into cycle 1 (auto-created lazily by the factory).
+        JourneyStage::factory()->count(2)->create(['couple_id' => $couple->id]);
+
+        $this->actingAsUser($user)->postJson('/api/v1/treatment-cycles/start-new');
+
+        // Goes into the new cycle 2.
+        JourneyStage::factory()->create(['couple_id' => $couple->id]);
+
+        $response = $this->actingAsUser($user)->getJson('/api/v1/journey-stages');
+
+        $response->assertStatus(200);
+        $response->assertJsonCount(1, 'journey_stages');
+    }
+
+    public function test_store_ignores_client_supplied_treatment_cycle_id(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+
+        $response = $this->actingAsUser($user)
+            ->postJson('/api/v1/journey-stages', [
+                'treatment_cycle_id' => 999999,
+                'type' => 'stimulation',
+                'start_date' => '2026-07-01',
+                'status' => 'upcoming',
+            ]);
+
+        $response->assertStatus(201);
+        $currentCycleId = $couple->currentTreatmentCycle()->id;
+        $this->assertDatabaseHas('journey_stages', [
+            'type' => 'stimulation',
+            'treatment_cycle_id' => $currentCycleId,
+        ]);
     }
 }
