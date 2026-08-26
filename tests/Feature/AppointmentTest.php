@@ -73,6 +73,43 @@ class AppointmentTest extends TestCase
         $this->assertTrue($response->json('appointment.completed'));
     }
 
+    public function test_update_with_stale_client_known_updated_at_returns_conflict(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+        $appointment = Appointment::factory()->create(['couple_id' => $couple->id, 'title' => 'Original']);
+
+        // Simulates the partner having already changed the record after this
+        // client last fetched it.
+        $appointment->update(['location' => 'changed by partner']);
+
+        $response = $this->actingAsUser($user)
+            ->putJson("/api/v1/appointments/{$appointment->id}", [
+                'title' => 'Updated Appointment',
+                'client_known_updated_at' => '2020-01-01T00:00:00.000000Z',
+            ]);
+
+        $response->assertStatus(409);
+        $response->assertJsonPath('conflict', true);
+        $this->assertDatabaseHas('appointments', ['id' => $appointment->id, 'title' => 'Original']);
+    }
+
+    public function test_update_with_matching_client_known_updated_at_succeeds(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+        $appointment = Appointment::factory()->create(['couple_id' => $couple->id]);
+
+        $response = $this->actingAsUser($user)
+            ->putJson("/api/v1/appointments/{$appointment->id}", [
+                'title' => 'Updated Appointment',
+                'client_known_updated_at' => $appointment->updated_at->toISOString(),
+            ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('appointments', ['id' => $appointment->id, 'title' => 'Updated Appointment']);
+    }
+
     public function test_authenticated_user_can_link_appointment_to_a_journey_stage(): void
     {
         $couple = $this->createTestCouple();

@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Concerns\ChecksOptimisticConcurrency;
 use App\Models\NotificationPreference;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class NotificationPreferenceController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksOptimisticConcurrency;
 
     public function index()
     {
@@ -57,16 +58,20 @@ class NotificationPreferenceController extends Controller
             'channel' => 'in:push,email,both',
             'enabled' => 'boolean',
             'reminder_minutes_before' => 'integer|min:0',
+            'client_known_updated_at' => 'nullable|date',
         ]);
 
-        $preference->update($request->all());
+        $this->assertNotStale($preference, $request->client_known_updated_at);
+
+        $preference->update($request->except('client_known_updated_at'));
         return response()->json(['notification_preference' => $preference]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $preference = NotificationPreference::findOrFail($id);
         $this->authorize('delete', $preference);
+        $this->assertNotStale($preference, $request->client_known_updated_at);
         $preference->delete();
         return response()->json(['message' => 'Notification preference deleted']);
     }

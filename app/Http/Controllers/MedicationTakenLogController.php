@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Concerns\ChecksOptimisticConcurrency;
 use App\Models\MedicationTakenLog;
 use App\Models\MedicationSchedule;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -9,7 +10,7 @@ use Illuminate\Http\Request;
 
 class MedicationTakenLogController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksOptimisticConcurrency;
 
     /// All taken/not-taken logs across every schedule belonging to the
     /// couple - lets the app show "mark as taken" state on Home/Agenda for
@@ -44,14 +45,21 @@ class MedicationTakenLogController extends Controller
         $request->validate([
             'date' => 'required|date',
             'time' => 'nullable|date_format:H:i',
+            'client_known_updated_at' => 'nullable|date',
         ]);
 
+        $key = [
+            'medication_schedule_id' => $scheduleId,
+            'date' => $request->date,
+            'time' => $request->time,
+        ];
+        $existing = MedicationTakenLog::where($key)->first();
+        if ($existing) {
+            $this->assertNotStale($existing, $request->client_known_updated_at);
+        }
+
         $log = MedicationTakenLog::updateOrCreate(
-            [
-                'medication_schedule_id' => $scheduleId,
-                'date' => $request->date,
-                'time' => $request->time,
-            ],
+            $key,
             [
                 'taken' => true,
                 'taken_at' => now()->format('H:i:s'),
@@ -71,14 +79,21 @@ class MedicationTakenLogController extends Controller
         $request->validate([
             'date' => 'required|date',
             'time' => 'nullable|date_format:H:i',
+            'client_known_updated_at' => 'nullable|date',
         ]);
 
+        $key = [
+            'medication_schedule_id' => $scheduleId,
+            'date' => $request->date,
+            'time' => $request->time,
+        ];
+        $existing = MedicationTakenLog::where($key)->first();
+        if ($existing) {
+            $this->assertNotStale($existing, $request->client_known_updated_at);
+        }
+
         $log = MedicationTakenLog::updateOrCreate(
-            [
-                'medication_schedule_id' => $scheduleId,
-                'date' => $request->date,
-                'time' => $request->time,
-            ],
+            $key,
             [
                 'taken' => false,
                 'taken_at' => null,

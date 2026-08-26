@@ -149,6 +149,43 @@ class JourneyStageTest extends TestCase
         $response->assertJsonCount(1, 'journey_stages');
     }
 
+    public function test_update_with_matching_client_known_updated_at_succeeds(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+        $stage = JourneyStage::factory()->create(['couple_id' => $couple->id]);
+
+        $response = $this->actingAsUser($user)
+            ->putJson("/api/v1/journey-stages/{$stage->id}", [
+                'status' => 'in_progress',
+                'client_known_updated_at' => $stage->updated_at->toISOString(),
+            ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('journey_stages', ['id' => $stage->id, 'status' => 'in_progress']);
+    }
+
+    public function test_update_with_stale_client_known_updated_at_returns_conflict(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+        $stage = JourneyStage::factory()->create(['couple_id' => $couple->id, 'status' => 'upcoming']);
+
+        // Simulates the partner having already changed the record after this
+        // client last fetched it.
+        $stage->update(['notes' => 'changed by partner']);
+
+        $response = $this->actingAsUser($user)
+            ->putJson("/api/v1/journey-stages/{$stage->id}", [
+                'status' => 'in_progress',
+                'client_known_updated_at' => '2020-01-01T00:00:00.000000Z',
+            ]);
+
+        $response->assertStatus(409);
+        $response->assertJsonPath('conflict', true);
+        $this->assertDatabaseHas('journey_stages', ['id' => $stage->id, 'status' => 'upcoming']);
+    }
+
     public function test_store_ignores_client_supplied_treatment_cycle_id(): void
     {
         $couple = $this->createTestCouple();

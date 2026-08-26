@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Concerns\ChecksOptimisticConcurrency;
 use App\Models\Practitioner;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class PractitionerController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksOptimisticConcurrency;
 
     public function index()
     {
@@ -59,16 +60,20 @@ class PractitionerController extends Controller
             'email' => 'nullable|email',
             'clinic_name' => 'nullable|string|max:255',
             'address' => 'nullable|string',
+            'client_known_updated_at' => 'nullable|date',
         ]);
 
-        $practitioner->update($request->all());
+        $this->assertNotStale($practitioner, $request->client_known_updated_at);
+
+        $practitioner->update($request->except('client_known_updated_at'));
         return response()->json(['practitioner' => $practitioner]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $practitioner = Practitioner::findOrFail($id);
         $this->authorize('delete', $practitioner);
+        $this->assertNotStale($practitioner, $request->client_known_updated_at);
         $practitioner->delete();
         return response()->json(['message' => 'Practitioner deleted']);
     }

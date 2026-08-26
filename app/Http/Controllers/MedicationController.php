@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Concerns\ChecksOptimisticConcurrency;
 use App\Models\Medication;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class MedicationController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksOptimisticConcurrency;
     public function index()
     {
         $medications = auth()->user()->couple->medications()
@@ -63,16 +64,20 @@ class MedicationController extends Controller
             'for_partner' => 'in:user1,user2,both',
             'description' => 'nullable|string',
             'active' => 'boolean',
+            'client_known_updated_at' => 'nullable|date',
         ]);
 
-        $medication->update($request->all());
+        $this->assertNotStale($medication, $request->client_known_updated_at);
+
+        $medication->update($request->except('client_known_updated_at'));
         return response()->json(['medication' => $medication]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $medication = Medication::findOrFail($id);
         $this->authorize('delete', $medication);
+        $this->assertNotStale($medication, $request->client_known_updated_at);
         // Soft-deactivate rather than hard-delete: schedules and taken-log
         // history for this medication must survive so past treatment stays
         // visible. index() already filters to active=true, so this is
