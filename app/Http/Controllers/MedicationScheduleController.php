@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Concerns\ChecksOptimisticConcurrency;
 use App\Models\MedicationSchedule;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class MedicationScheduleController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksOptimisticConcurrency;
     public function index(Request $request, $medicationId = null)
     {
         $query = MedicationSchedule::where('couple_id', auth()->user()->couple_id);
@@ -91,7 +92,10 @@ class MedicationScheduleController extends Controller
             'reminder_offsets.*' => 'integer|min:0|max:1440',
             'notify_user_1' => 'boolean',
             'notify_user_2' => 'boolean',
+            'client_known_updated_at' => 'nullable|date',
         ]);
+
+        $this->assertNotStale($schedule, $request->client_known_updated_at);
 
         $schedule->update($request->only([
             'journey_stage_id',
@@ -107,10 +111,11 @@ class MedicationScheduleController extends Controller
         return response()->json(['schedule' => $schedule]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $schedule = MedicationSchedule::findOrFail($id);
         $this->authorize('delete', $schedule);
+        $this->assertNotStale($schedule, $request->client_known_updated_at);
         $schedule->delete();
         return response()->json(['message' => 'Schedule deleted']);
     }

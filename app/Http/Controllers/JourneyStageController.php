@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Concerns\ChecksOptimisticConcurrency;
 use App\Models\JourneyStage;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class JourneyStageController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksOptimisticConcurrency;
 
     public function index()
     {
@@ -82,7 +83,10 @@ class JourneyStageController extends Controller
             'status' => 'in:upcoming,in_progress,done,skipped',
             'reminder_enabled' => 'boolean',
             'notes' => 'nullable|string',
+            'client_known_updated_at' => 'nullable|date',
         ]);
+
+        $this->assertNotStale($stage, $request->client_known_updated_at);
 
         // Skipping a stage means it's excluded from the date chain going
         // forward and its medication reminders should stop - cap (don't
@@ -115,10 +119,11 @@ class JourneyStageController extends Controller
         return response()->json(['journey_stage' => $stage]);
     }
 
-    public function close($id)
+    public function close(Request $request, $id)
     {
         $stage = JourneyStage::findOrFail($id);
         $this->authorize('update', $stage);
+        $this->assertNotStale($stage, $request->client_known_updated_at);
 
         $stage->update([
             'end_date' => now()->toDateString(),
@@ -128,10 +133,11 @@ class JourneyStageController extends Controller
         return response()->json(['journey_stage' => $stage]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $stage = JourneyStage::findOrFail($id);
         $this->authorize('delete', $stage);
+        $this->assertNotStale($stage, $request->client_known_updated_at);
         $stage->delete();
         return response()->json(['message' => 'Journey stage deleted']);
     }

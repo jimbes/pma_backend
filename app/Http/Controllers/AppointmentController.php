@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Concerns\ChecksOptimisticConcurrency;
 use App\Models\Appointment;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
 {
-    use AuthorizesRequests;
+    use AuthorizesRequests, ChecksOptimisticConcurrency;
     public function index()
     {
         $appointments = auth()->user()->couple->appointments()->get();
@@ -82,24 +83,29 @@ class AppointmentController extends Controller
             'description' => 'nullable|string',
             'notify_user_1' => 'boolean',
             'notify_user_2' => 'boolean',
+            'client_known_updated_at' => 'nullable|date',
         ]);
 
-        $appointment->update($request->all());
+        $this->assertNotStale($appointment, $request->client_known_updated_at);
+
+        $appointment->update($request->except('client_known_updated_at'));
         return response()->json(['appointment' => $appointment]);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $appointment = Appointment::findOrFail($id);
         $this->authorize('delete', $appointment);
+        $this->assertNotStale($appointment, $request->client_known_updated_at);
         $appointment->delete();
         return response()->json(['message' => 'Appointment deleted']);
     }
 
-    public function markComplete($id)
+    public function markComplete(Request $request, $id)
     {
         $appointment = Appointment::findOrFail($id);
         $this->authorize('update', $appointment);
+        $this->assertNotStale($appointment, $request->client_known_updated_at);
         $appointment->update(['completed' => true]);
         return response()->json(['appointment' => $appointment]);
     }
