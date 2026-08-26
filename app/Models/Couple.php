@@ -36,6 +36,18 @@ class Couple extends Model
         return $this->hasMany(TreatmentCycle::class);
     }
 
+    // Every couple has exactly one active cycle at a time - the one with the
+    // highest cycle_number. Lazily created on first access so a brand-new
+    // couple doesn't need a separate bootstrap step.
+    public function currentTreatmentCycle()
+    {
+        return $this->treatmentCycles()->orderByDesc('cycle_number')->first()
+            ?? $this->treatmentCycles()->create([
+                'cycle_number' => 1,
+                'start_date' => now()->toDateString(),
+            ]);
+    }
+
     public function invitations()
     {
         return $this->hasMany(CoupleInvitation::class);

@@ -19,6 +19,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\NotificationPreferenceController;
 use App\Http\Controllers\PartnerController;
 use App\Http\Controllers\PractitionerController;
+use App\Http\Controllers\TreatmentCycleController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
@@ -62,6 +63,12 @@ Route::prefix('v1')->group(function () {
 
         Route::apiResource('journey-stages', JourneyStageController::class);
         Route::post('journey-stages/{id}/close', [JourneyStageController::class, 'close']);
+
+        Route::get('treatment-cycles', [TreatmentCycleController::class, 'index']);
+        Route::get('treatment-cycles/current', [TreatmentCycleController::class, 'current']);
+        Route::post('treatment-cycles/start-new', [TreatmentCycleController::class, 'startNew']);
+        Route::get('treatment-cycles/{id}/journey-stages', [TreatmentCycleController::class, 'stages']);
+
         Route::apiResource('practitioners', PractitionerController::class);
         Route::apiResource('notification-preferences', NotificationPreferenceController::class);
 

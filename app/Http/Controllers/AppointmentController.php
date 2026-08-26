@@ -19,6 +19,7 @@ class AppointmentController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'journey_stage_id' => 'nullable|integer|exists:journey_stages,id',
             'appointment_date' => 'required|date',
             'appointment_time' => 'nullable|date_format:H:i',
             'type' => 'nullable|in:echo,blood_test,consult,ponction,transfert,other',
@@ -36,6 +37,7 @@ class AppointmentController extends Controller
         $appointment = Appointment::create([
             'couple_id' => auth()->user()->couple_id,
             'created_by' => auth()->id(),
+            'journey_stage_id' => $request->journey_stage_id,
             'title' => $request->title,
             'appointment_date' => $request->appointment_date,
             'appointment_time' => $request->appointment_time,
@@ -67,6 +69,7 @@ class AppointmentController extends Controller
 
         $request->validate([
             'title' => 'string|max:255',
+            'journey_stage_id' => 'nullable|integer|exists:journey_stages,id',
             'appointment_date' => 'date',
             'appointment_time' => 'nullable|date_format:H:i',
             'type' => 'nullable|in:echo,blood_test,consult,ponction,transfert,other',

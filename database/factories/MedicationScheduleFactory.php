@@ -19,7 +19,7 @@ class MedicationScheduleFactory extends Factory
             'frequency' => 'daily',
             'days_of_week' => null,
             'reminder_times' => json_encode(['08:00', '20:00']),
-            'reminder_offset_hours' => 1,
+            'reminder_offsets' => [15],
             'notify_user_1' => true,
             'notify_user_2' => true,
         ];

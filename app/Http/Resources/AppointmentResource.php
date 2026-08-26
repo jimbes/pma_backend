@@ -10,6 +10,7 @@ class AppointmentResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'journey_stage_id' => $this->journey_stage_id,
             'title' => $this->title,
             'description' => $this->description,
             'appointment_date' => $this->appointment_date,
