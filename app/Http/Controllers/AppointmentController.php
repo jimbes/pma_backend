@@ -23,7 +23,10 @@ class AppointmentController extends Controller
             'journey_stage_id' => 'nullable|integer|exists:journey_stages,id',
             'appointment_date' => 'required|date',
             'appointment_time' => 'nullable|date_format:H:i',
-            'type' => 'nullable|in:echo,blood_test,consult,ponction,transfert,other',
+            // A visit can cover more than one subject (e.g. écho + prise de
+            // sang the same day).
+            'types' => 'array',
+            'types.*' => 'in:echo,blood_test,consult,ponction,transfert,other',
             // Minutes before the appointment - can have several reminders
             // (e.g. 24h before AND 12h before), not just one.
             'reminder_offsets' => 'array',
@@ -42,7 +45,7 @@ class AppointmentController extends Controller
             'title' => $request->title,
             'appointment_date' => $request->appointment_date,
             'appointment_time' => $request->appointment_time,
-            'type' => $request->type,
+            'types' => $request->types ?? [],
             // ?: would treat an intentionally-empty array (reminders
             // turned off) as falsy and reset it back to the default.
             'reminder_offsets' => $request->has('reminder_offsets') ? $request->reminder_offsets : [60],
@@ -73,7 +76,8 @@ class AppointmentController extends Controller
             'journey_stage_id' => 'nullable|integer|exists:journey_stages,id',
             'appointment_date' => 'date',
             'appointment_time' => 'nullable|date_format:H:i',
-            'type' => 'nullable|in:echo,blood_test,consult,ponction,transfert,other',
+            'types' => 'array',
+            'types.*' => 'in:echo,blood_test,consult,ponction,transfert,other',
             // Minutes before the appointment - can have several reminders
             // (e.g. 24h before AND 12h before), not just one.
             'reminder_offsets' => 'array',
