@@ -186,6 +186,69 @@ class JourneyStageTest extends TestCase
         $this->assertDatabaseHas('journey_stages', ['id' => $stage->id, 'status' => 'upcoming']);
     }
 
+    public function test_creating_the_first_stage_syncs_the_cycle_start_date(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+
+        $response = $this->actingAsUser($user)
+            ->postJson('/api/v1/journey-stages', [
+                'type' => 'stimulation',
+                'order' => 0,
+                'start_date' => '2026-07-01',
+                'status' => 'upcoming',
+            ]);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('treatment_cycles', [
+            'id' => $couple->currentTreatmentCycle()->id,
+            'start_date' => '2026-07-01',
+        ]);
+    }
+
+    public function test_editing_the_first_stages_start_date_resyncs_the_cycle(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+
+        $stage = JourneyStage::factory()->create([
+            'couple_id' => $couple->id,
+            'order' => 0,
+            'start_date' => '2026-07-01',
+        ]);
+
+        $response = $this->actingAsUser($user)
+            ->putJson("/api/v1/journey-stages/{$stage->id}", [
+                'start_date' => '2026-07-05',
+                'manual_start_date' => true,
+            ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('treatment_cycles', [
+            'id' => $stage->treatment_cycle_id,
+            'start_date' => '2026-07-05',
+        ]);
+    }
+
+    public function test_a_non_first_stage_does_not_affect_the_cycle_start_date(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+        $cycleBefore = $couple->currentTreatmentCycle()->start_date->toDateString();
+
+        $this->actingAsUser($user)->postJson('/api/v1/journey-stages', [
+            'type' => 'stimulation',
+            'order' => 1,
+            'start_date' => '2026-09-01',
+            'status' => 'upcoming',
+        ]);
+
+        $this->assertSame(
+            $cycleBefore,
+            $couple->currentTreatmentCycle()->fresh()->start_date->toDateString(),
+        );
+    }
+
     public function test_store_ignores_client_supplied_treatment_cycle_id(): void
     {
         $couple = $this->createTestCouple();
