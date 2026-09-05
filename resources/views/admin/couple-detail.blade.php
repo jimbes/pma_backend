@@ -288,7 +288,7 @@
                     @foreach($couple->appointments as $appointment)
                     <tr>
                         <td>{{ $appointment->title }}</td>
-                        <td>{{ $appointment->type ?? '-' }}</td>
+                        <td>{{ $appointment->types ? implode(', ', $appointment->types) : '-' }}</td>
                         <td>{{ $appointment->appointment_date->format('d/m/Y') }}</td>
                         <td>{{ $appointment->appointment_time ?? '-' }}</td>
                         <td>{{ $appointment->location ?? '-' }}</td>

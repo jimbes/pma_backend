@@ -43,6 +43,26 @@ class AppointmentTest extends TestCase
         $this->assertDatabaseHas('appointments', ['title' => 'Doctor Appointment']);
     }
 
+    public function test_authenticated_user_can_create_appointment_with_multiple_types(): void
+    {
+        $couple = $this->createTestCouple();
+        $user = $couple->users->first();
+
+        $response = $this->actingAsUser($user)
+            ->postJson('/api/v1/appointments', [
+                'title' => 'Écho + prise de sang',
+                'appointment_date' => '2026-07-15',
+                'types' => ['echo', 'blood_test'],
+            ]);
+
+        $response->assertStatus(201);
+        $this->assertSame(['echo', 'blood_test'], $response->json('appointment.types'));
+        $this->assertDatabaseHas('appointments', [
+            'title' => 'Écho + prise de sang',
+            'types' => json_encode(['echo', 'blood_test']),
+        ]);
+    }
+
     public function test_authenticated_user_can_update_appointment(): void
     {
         $couple = $this->createTestCouple();
