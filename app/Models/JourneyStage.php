@@ -54,4 +54,18 @@ class JourneyStage extends Model
     {
         return $this->hasMany(MedicationSchedule::class);
     }
+
+    // The cycle's "day 1" should be the first stage's actual start date, not
+    // whenever the cycle row happened to be created (e.g. a couple's first
+    // cycle is lazily created at registration, which can be days before they
+    // configure their first stage - without this, the app would show "J12"
+    // on the first day of stage 1 instead of "J1").
+    protected static function booted(): void
+    {
+        static::saved(function (JourneyStage $stage) {
+            if ($stage->order === 0 && $stage->treatment_cycle_id) {
+                $stage->treatmentCycle()->update(['start_date' => $stage->start_date]);
+            }
+        });
+    }
 }
